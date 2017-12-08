@@ -16,7 +16,8 @@
  * under the License.
  */
 "use strict";
-import SwaggerClient from 'swagger-client'
+//TODO: [rnk] Change to {from 'swagger-client'} after swaggerjs resolved the issue
+import SwaggerClient from '../../../../public/js/swagger-client'
 import AuthManager from './AuthManager'
 import Utils from "./Utils";
 

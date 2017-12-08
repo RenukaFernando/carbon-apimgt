@@ -30,6 +30,7 @@ import 'antd/dist/antd.css'
 import {message} from 'antd'
 import './App.css'
 import 'typeface-roboto'
+import Utils from "./app/data/Utils";
 // import './materialize.css'
 
 /**
@@ -42,12 +43,20 @@ class Protected extends Component {
         message.config({top: '48px'}); // .custom-header height + some offset
         /* TODO: need to fix the header to avoid conflicting with messages ~tmkb*/
         this.handleResponse = this.handleResponse.bind(this);
-        /* TODO: Get apim base url from config*/
-        Axios.get(location.origin + "/login/login/store").then(this.handleResponse);
+        Axios.get(Utils.getAppLoginURL()).then(this.handleResponse).catch(this.handleReject);
     }
 
     handleResponse = (response) => {
-        this.setState({ authConfigs: response.data});
+        this.setState({authConfigs: response.data});
+    }
+
+    /**
+     * Handle invalid login url in localStorage - environment object
+     * @param reject
+     */
+    handleReject = reject => {
+        Utils.setEnvironment(); //Set Default environment
+        Axios.get(Utils.getAppLoginURL()).then(this.handleResponse); //Try login
     }
 
     /**
