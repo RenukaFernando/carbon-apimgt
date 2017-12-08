@@ -119,7 +119,7 @@ public class AuthenticatorAPI implements Microservice {
             String refreshToken = accessTokenInfo.getRefreshToken();
 
             // The part of the access token is stored as a http only cookie. This part will be stored in two cookies
-            // with two different contexts. One in the rest api context and the one in the "/login" context
+            // with two different contexts. One in the rest api context and the one in the "/logout" context
             // Hence we need to split the access token
             String accessTokenPart1 = accessToken.substring(0, accessToken.length() / 2);
             String accessTokenPart2 = accessToken.substring(accessToken.length() / 2);
@@ -127,10 +127,10 @@ public class AuthenticatorAPI implements Microservice {
             authResponseBean.setPartialToken(accessTokenPart1);
             // Cookie should be set to the log out context in order to revoke the token when log out happens.
 
-            NewCookie httpOnlyCookieWithLogInContext = AuthUtil
+            NewCookie httpOnlyCookieWithLogOutContext = AuthUtil
                     .cookieBuilder(AuthenticatorConstants.ACCESS_TOKEN_2, accessTokenPart2, logoutContext,
                             true, true, "");
-            NewCookie restAPIContextCookie = AuthUtil
+            NewCookie httpOnlyCookieWithRestAPIContext = AuthUtil
                     .cookieBuilder(APIConstants.AccessTokenConstants.AM_TOKEN_MSF4J, accessTokenPart2, restAPIContext, true, true,
                             "");
             NewCookie refreshTokenCookie, refreshTokenHttpOnlyCookie;
@@ -146,7 +146,7 @@ public class AuthenticatorAPI implements Microservice {
                         .cookieBuilder(AuthenticatorConstants.REFRESH_TOKEN_2, refTokenPart2, appContext, true, true,
                                 "");
                 return Response.ok(authResponseBean, MediaType.APPLICATION_JSON)
-                        .cookie(httpOnlyCookieWithLogInContext, restAPIContextCookie,
+                        .cookie(httpOnlyCookieWithLogOutContext, httpOnlyCookieWithRestAPIContext,
                                 refreshTokenCookie, refreshTokenHttpOnlyCookie).header(AuthenticatorConstants.
                                         REFERER_HEADER,
                                 (request.getHeader(AuthenticatorConstants.X_ALT_REFERER_HEADER) != null && request
@@ -159,7 +159,7 @@ public class AuthenticatorAPI implements Microservice {
                         .build();
             } else {
                 return Response.ok(authResponseBean, MediaType.APPLICATION_JSON)
-                        .cookie(httpOnlyCookieWithLogInContext, restAPIContextCookie)
+                        .cookie(httpOnlyCookieWithLogOutContext, httpOnlyCookieWithRestAPIContext)
                         .header(AuthenticatorConstants.
                                         REFERER_HEADER,
                                 (request.getHeader(AuthenticatorConstants.X_ALT_REFERER_HEADER) != null && request
