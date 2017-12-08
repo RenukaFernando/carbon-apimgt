@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 "use strict";
-import SingleClient from "./SingleClient"
+import APIClientFactory from "./APIClientFactory";
 
 export default class Application {
     constructor(name, description, throttlingTier, kwargs) {
         this.id = kwargs ? kwargs.applicationId : null;
-        this.client = new SingleClient().client;
+        this.client = new APIClientFactory().getAPIClient(Utils.getEnvironment().label).client;
         this.keys = new Map();
         this.tokens = new Map();
         for (let key in kwargs) {
@@ -105,7 +106,7 @@ export default class Application {
     }
 
     static get(id) {
-        let client = new SingleClient().client;
+        let client = new APIClientFactory().getAPIClient(Utils.getEnvironment().label).client;
         let promise_get = client.then(
             (client) => {
                 return client.apis["Application (Individual)"].get_applications__applicationId_({applicationId: id});
