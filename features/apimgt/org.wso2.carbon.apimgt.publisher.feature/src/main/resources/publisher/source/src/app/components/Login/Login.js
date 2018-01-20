@@ -91,10 +91,15 @@ class Login extends Component {
             this.setState({isLogin: true});
             const validityPeriod = params.validity_period; // In seconds
             const WSO2_AM_TOKEN_1 = params.partial_token;
-            const user = new User(Utils.getEnvironment().label, params.user_name, params.id_token);
+            const user = new User(Utils.getEnvironment().label, params.user_name);
             user.setPartialToken(WSO2_AM_TOKEN_1, validityPeriod, "/publisher");
             user.scopes = params.scopes.split(" ");
             AuthManager.setUser(user);
+            AuthManager.handleAutoLoginEnvironments(
+                params.id_token,
+                this.state.environments,
+                this.state.authConfigs
+            );
         }
     }
 
@@ -161,6 +166,11 @@ class Login extends Component {
         let loginPromise = this.authManager.authenticateUser(username, password, environment);
         loginPromise.then((response) => {
             this.setState({isLogin: AuthManager.getUser(), loading: false});
+            AuthManager.handleAutoLoginEnvironments(
+                response.data.idToken,
+                this.state.environments,
+                this.state.authConfigs
+            );
         }).catch((error) => {
                 this.setState({messageOpen: true});
                 this.setState({message: error});

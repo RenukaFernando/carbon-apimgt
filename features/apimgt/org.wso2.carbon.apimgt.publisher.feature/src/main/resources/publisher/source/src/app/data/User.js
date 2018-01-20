@@ -28,18 +28,16 @@ export default class User {
      * Create a user for the given environment
      * @param {string} environment
      * @param {string} name
-     * @param {string} id_token
      * @param {boolean} remember
      * @returns {User|null} user object
      */
-    constructor(environment, name, id_token, remember = false) {
+    constructor(environment, name, remember = false) {
         const user = User._userMap.get(environment);
         if (user) {
             return user;
         }
         this.name = name;
         this._scopes = [];
-        this._idToken = id_token;
         this._remember = remember;
         User._userMap.set(environment, this);
     }
@@ -71,7 +69,6 @@ export default class User {
         }
         const _user = new User(Utils.getEnvironment().label, userJson.name);
         _user.scopes = userJson.scopes;
-        _user.idToken = userJson.idToken;
         _user.rememberMe = userJson.remember;
         return _user;
     }
@@ -111,7 +108,6 @@ export default class User {
         return {
             name: this.name,
             scopes: this._scopes,
-            idToken: this._idToken,
             remember: this._remember
         };
     }

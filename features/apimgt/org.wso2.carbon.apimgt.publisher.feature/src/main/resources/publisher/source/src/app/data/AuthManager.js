@@ -178,7 +178,7 @@ class AuthManager {
         promised_response.then(response => {
             const validityPeriod = response.data.validityPeriod; // In seconds
             const WSO2_AM_TOKEN_1 = response.data.partialToken;
-            const user = new User(Utils.getEnvironment().label, response.data.authUser, response.data.idToken);
+            const user = new User(Utils.getEnvironment().label, response.data.authUser);
             user.setPartialToken(WSO2_AM_TOKEN_1, validityPeriod, Utils.CONST.CONTEXT_PATH);
             user.scopes = response.data.scopes.split(" ");
             AuthManager.setUser(user);
@@ -228,6 +228,15 @@ class AuthManager {
         return axios.post(url, qs.stringify(params), {headers: headers});
     }
 
+    /**
+     *
+     * @param {string} idToken
+     * @param {array} environments
+     * @param {array} configs
+     */
+    static handleAutoLoginEnvironments(idToken, environments, configs) {
+
+    }
 }
 
 export default AuthManager;
