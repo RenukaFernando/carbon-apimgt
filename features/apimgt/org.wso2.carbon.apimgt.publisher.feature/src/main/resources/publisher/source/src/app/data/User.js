@@ -26,8 +26,8 @@ import Utils from './Utils'
 export default class User {
     /**
      * Create a user for the given environment
-     * @param {string} environment
-     * @param {string} name
+     * @param {string} environment : name of the environment
+     * @param {string} name : name of the cookie
      * @param {boolean} remember
      * @returns {User|null} user object
      */
@@ -39,6 +39,7 @@ export default class User {
         this.name = name;
         this._scopes = [];
         this._remember = remember;
+        this._environment = environment || Utils.getEnvironment().label;
         User._userMap.set(environment, this);
     }
 
@@ -78,7 +79,7 @@ export default class User {
      * @returns {String|null}
      */
     getPartialToken() {
-        return Utils.getCookie(User.CONST.WSO2_AM_TOKEN_1);
+        return Utils.getCookie(User.CONST.WSO2_AM_TOKEN_1, this._environment);
     }
 
     /**
@@ -88,8 +89,8 @@ export default class User {
      * @param path Path which need to be set to cookie
      */
     setPartialToken(newToken, validityPeriod, path) {
-        Utils.delete_cookie(User.CONST.WSO2_AM_TOKEN_1, path);
-        Utils.setCookie(User.CONST.WSO2_AM_TOKEN_1, newToken, validityPeriod, path);
+        Utils.delete_cookie(User.CONST.WSO2_AM_TOKEN_1, path, this._environment);
+        Utils.setCookie(User.CONST.WSO2_AM_TOKEN_1, newToken, validityPeriod, path, this._environment);
     }
 
     /**

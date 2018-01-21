@@ -165,27 +165,15 @@ class AuthManager {
             scopes: 'apim:api_view apim:api_create apim:api_publish apim:tier_view apim:tier_manage '
             + 'apim:subscription_view apim:subscription_block apim:subscribe apim:external_services_discover'
         };
-        let promised_response = axios(Utils.getLoginTokenPath(environment), {
-            method: "POST",
-            data: qs.stringify(data),
-            headers: headers,
-            withCredentials: true
-        });
         //Set the environment that user tried to authenticate
         let previous_environment = Utils.getEnvironment();
         Utils.setEnvironment(environment);
 
-        promised_response.then(response => {
-            const validityPeriod = response.data.validityPeriod; // In seconds
-            const WSO2_AM_TOKEN_1 = response.data.partialToken;
-            const user = new User(Utils.getEnvironment().label, response.data.authUser);
-            user.setPartialToken(WSO2_AM_TOKEN_1, validityPeriod, Utils.CONST.CONTEXT_PATH);
-            user.scopes = response.data.scopes.split(" ");
-            AuthManager.setUser(user);
-        }).catch(error => {
-            console.error("Authentication Error:\n", error);
+        let promised_response = AuthManager.postAuthenticationRequest(headers, data, environment);
+        promised_response.catch(error => {
             Utils.setEnvironment(previous_environment);
         });
+
         return promised_response;
     }
 
@@ -235,7 +223,53 @@ class AuthManager {
      * @param {array} configs
      */
     static handleAutoLoginEnvironments(idToken, environments, configs) {
+        const headers = {
+            'Accept': 'application/json',
+            'Content-Type': 'application/x-www-form-urlencoded'
+        };
+        const data = {
+            assertion: idToken,
+            validity_period: -1,
+            scopes: 'apim:api_view apim:api_create apim:api_publish apim:tier_view apim:tier_manage '
+            + 'apim:subscription_view apim:subscription_block apim:subscribe apim:external_services_discover'
+        };
+        const currentEnvName = Utils.getEnvironment().label;
 
+        environments.forEach((environment, environmentID) => {
+            if (configs[environmentID].is_auto_login_enabled && environment.label !== currentEnvName) {
+                AuthManager.postAuthenticationRequest(headers, data, environment);
+            }
+        });
+
+    }
+
+    /**
+     * Send the POST request to the using Axios
+     * @param {Object} headers : Header object
+     * @param {Object} data : Data object with credentials
+     * @param {Object} environment : environment object
+     * @returns {AxiosPromise} : Promise object with the login request made
+     */
+    static postAuthenticationRequest(headers, data, environment) {
+        let promised_response = axios(Utils.getLoginTokenPath(environment), {
+            method: "POST",
+            data: qs.stringify(data),
+            headers: headers,
+            withCredentials: true
+        });
+
+        promised_response.then(response => {
+            const validityPeriod = response.data.validityPeriod; // In seconds
+            const WSO2_AM_TOKEN_1 = response.data.partialToken;
+            const user = new User(environment.label, response.data.authUser);
+            user.setPartialToken(WSO2_AM_TOKEN_1, validityPeriod, Utils.CONST.CONTEXT_PATH);
+            user.scopes = response.data.scopes.split(" ");
+            AuthManager.setUser(user, environment.label);
+        }).catch(error => {
+            console.error(`Authentication Error in '${environment.label}' environment :\n`, error);
+        });
+
+        return promised_response;
     }
 }
 
