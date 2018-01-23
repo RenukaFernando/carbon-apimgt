@@ -107,6 +107,7 @@ public class AuthenticatorService {
                 oAuthData.addProperty(KeyManagerConstants.AUTHORIZATION_ENDPOINT,
                         appConfigs.getAuthorizationEndpoint());
                 oAuthData.addProperty(AuthenticatorConstants.SSO_ENABLED, appConfigs.isSsoEnabled());
+                oAuthData.addProperty(AuthenticatorConstants.AUTO_LOGIN_ENABLED, true);
             } else {
                 String errorMsg = "No information available in OAuth application.";
                 log.error(errorMsg, ExceptionCodes.OAUTH2_APP_CREATION_FAILED);
@@ -175,6 +176,13 @@ public class AuthenticatorService {
                         .createAccessTokenRequest(userName, password, grantType, refreshToken,
                                 null, validityPeriod, scopes,
                                 consumerKeySecretMap.get("CONSUMER_KEY"), consumerKeySecretMap.get("CONSUMER_SECRET"));
+                accessTokenInfo = getKeyManager().getNewAccessToken(accessTokenRequest);
+            } else if (AuthenticatorConstants.JWT_GRANT.equals(grantType)){
+                accessTokenRequest.setClientId(consumerKeySecretMap.get("CONSUMER_KEY"));
+                accessTokenRequest.setClientSecret(consumerKeySecretMap.get("CONSUMER_SECRET"));
+                accessTokenRequest.setGrantType(grantType);
+                accessTokenRequest.setAssertion(authorizationCode);
+                accessTokenRequest.setScopes(scopes);
                 accessTokenInfo = getKeyManager().getNewAccessToken(accessTokenRequest);
             }
         } catch (KeyManagementException e) {

@@ -83,7 +83,8 @@ public class AuthenticatorAPI implements Microservice {
     @Consumes({MediaType.APPLICATION_FORM_URLENCODED, MediaType.MULTIPART_FORM_DATA})
     public Response authenticate(@Context Request request, @PathParam("appName") String appName,
                                  @FormDataParam("username") String userName, @FormDataParam("password") String password,
-                                 @FormDataParam("grant_type") String grantType, @FormDataParam("validity_period") String validityPeriod,
+                                 @FormDataParam("assertion") String assertion, @FormDataParam("grant_type") String grantType,
+                                 @FormDataParam("validity_period") String validityPeriod,
                                  @FormDataParam("remember_me") boolean isRememberMe, @FormDataParam("scopes") String scopesList) {
         try {
             KeyManager keyManager = APIManagerFactory.getInstance().getKeyManager();
