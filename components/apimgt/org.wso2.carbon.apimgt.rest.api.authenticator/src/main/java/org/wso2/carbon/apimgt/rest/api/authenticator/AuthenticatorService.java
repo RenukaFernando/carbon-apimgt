@@ -25,6 +25,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.apimgt.core.api.APIDefinition;
 import org.wso2.carbon.apimgt.core.api.KeyManager;
+import org.wso2.carbon.apimgt.core.configuration.APIMConfigurationService;
+import org.wso2.carbon.apimgt.core.configuration.models.EnvironmentOverviewConfigs;
 import org.wso2.carbon.apimgt.core.dao.SystemApplicationDao;
 import org.wso2.carbon.apimgt.core.exception.APIManagementException;
 import org.wso2.carbon.apimgt.core.exception.APIMgtDAOException;
@@ -63,9 +65,10 @@ public class AuthenticatorService {
 
     /**
      * Constructor.
+     *
      * @param keyManager KeyManager object
      */
-    public AuthenticatorService(KeyManager keyManager,SystemApplicationDao systemApplicationDao) {
+    public AuthenticatorService(KeyManager keyManager, SystemApplicationDao systemApplicationDao) {
         this.keyManager = keyManager;
         this.systemApplicationDao = systemApplicationDao;
     }
@@ -128,12 +131,12 @@ public class AuthenticatorService {
     /**
      * This method returns the access tokens for a given application.
      *
-     * @param appName Name of the application which needs to get tokens
-     * @param grantType Grant type of the application
-     * @param userName User name of the user
-     * @param password Password of the user
-     * @param refreshToken Refresh token
-     * @param validityPeriod Validity period of tokens
+     * @param appName           Name of the application which needs to get tokens
+     * @param grantType         Grant type of the application
+     * @param userName          User name of the user
+     * @param password          Password of the user
+     * @param refreshToken      Refresh token
+     * @param validityPeriod    Validity period of tokens
      * @param authorizationCode Authorization Code
      * @return AccessTokenInfo - An object with the generated access token information
      * @throws APIManagementException When receiving access tokens fails
@@ -144,6 +147,13 @@ public class AuthenticatorService {
             throws APIManagementException {
         AccessTokenInfo accessTokenInfo = new AccessTokenInfo();
         AccessTokenRequest accessTokenRequest = new AccessTokenRequest();
+
+        // Authentication details for Multi-Environment Overview
+        EnvironmentOverviewConfigs envOverviewConfigs = APIMConfigurationService.getInstance().getApimConfigurations()
+                .getEnvironmentConfigurations().getEnvironmentOverviewConfigs();
+        boolean isMultiEnvironmentOverviewEnabled = envOverviewConfigs.isEnabled();
+        String customGrantType = envOverviewConfigs.getAuthentication().get("grantType");
+
         // Get scopes of the application
         String scopes = getApplicationScopes(appName);
         if (log.isDebugEnabled()) {
@@ -168,6 +178,7 @@ public class AuthenticatorService {
                     accessTokenRequest.setGrantType(grantType);
                     accessTokenRequest.setAuthorizationCode(authorizationCode);
                     accessTokenRequest.setScopes(scopes);
+                    accessTokenRequest.setValidityPeriod(validityPeriod);
                     accessTokenRequest.setCallbackURI(callBackURL);
                     accessTokenInfo = getKeyManager().getNewAccessToken(accessTokenRequest);
                 } else {
@@ -182,12 +193,13 @@ public class AuthenticatorService {
                                 null, validityPeriod, scopes,
                                 consumerKeySecretMap.get("CONSUMER_KEY"), consumerKeySecretMap.get("CONSUMER_SECRET"));
                 accessTokenInfo = getKeyManager().getNewAccessToken(accessTokenRequest);
-            } else if (AuthenticatorConstants.JWT_GRANT.equals(grantType)){
+            } else if (isMultiEnvironmentOverviewEnabled) {
                 accessTokenRequest.setClientId(consumerKeySecretMap.get("CONSUMER_KEY"));
                 accessTokenRequest.setClientSecret(consumerKeySecretMap.get("CONSUMER_SECRET"));
-                accessTokenRequest.setGrantType(grantType);
                 accessTokenRequest.setAssertion(assertion);
+                accessTokenRequest.setGrantType(customGrantType);
                 accessTokenRequest.setScopes(scopes);
+                accessTokenRequest.setValidityPeriod(validityPeriod);
                 accessTokenInfo = getKeyManager().getNewAccessToken(accessTokenRequest);
             }
         } catch (KeyManagementException e) {
@@ -201,7 +213,7 @@ public class AuthenticatorService {
     /**
      * This method revokes the access token.
      *
-     * @param appName Name of the application
+     * @param appName     Name of the application
      * @param accessToken Access token to be revoked
      * @throws APIManagementException When revoking access token fails
      */
@@ -214,7 +226,7 @@ public class AuthenticatorService {
     /**
      * This method sets access token data.
      *
-     * @param responseBean Contains access token data
+     * @param responseBean    Contains access token data
      * @param accessTokenInfo Information of the access token
      * @return AuthResponseBean - An object with access token data
      * @throws KeyManagementException When parsing JWT fails
@@ -307,9 +319,9 @@ public class AuthenticatorService {
     /**
      * This method creates a DCR application.
      *
-     * @param clientName Name of the application to be created
+     * @param clientName  Name of the application to be created
      * @param callBackURL Call back URL of the application
-     * @param grantTypes List of grant types of the application
+     * @param grantTypes  List of grant types of the application
      * @return OAUthApplicationInfo - An object with DCR Application information
      * @throws APIManagementException When creating DCR application fails
      */
@@ -327,7 +339,7 @@ public class AuthenticatorService {
                 oAuthApplicationInfo = getKeyManager().retrieveApplication(consumerKey);
             } else {
                 oAuthApplicationInfo = getKeyManager().createApplication(oAuthAppRequest);
-                if (oAuthApplicationInfo != null){
+                if (oAuthApplicationInfo != null) {
                     systemApplicationDao.addApplicationKey(clientName, oAuthApplicationInfo.getClientId());
                 }
             }

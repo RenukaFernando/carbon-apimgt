@@ -267,6 +267,8 @@ public class DefaultKeyManagerImpl implements KeyManager {
                 //todo: implement
             } else if (KeyManagerConstants.REFRESH_GRANT_TYPE.equals(tokenRequest.getGrantType())) {
                 //todo: implement
+            } else if (KeyManagerConstants.JWT_GRANT_TYPE.equals(tokenRequest.getGrantType())) {
+                //todo: implement
             } else {
                 throw new KeyManagementException(
                         "Invalid access token request. Unsupported grant type: " + tokenRequest.getGrantType(),
