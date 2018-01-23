@@ -135,7 +135,7 @@ public class AuthenticatorService {
      */
     public AccessTokenInfo getTokens(String appName, String grantType,
                                      String userName, String password, String refreshToken,
-                                     long validityPeriod, String authorizationCode)
+                                     long validityPeriod, String authorizationCode, String assertion)
             throws APIManagementException {
         AccessTokenInfo accessTokenInfo = new AccessTokenInfo();
         AccessTokenRequest accessTokenRequest = new AccessTokenRequest();
@@ -181,7 +181,7 @@ public class AuthenticatorService {
                 accessTokenRequest.setClientId(consumerKeySecretMap.get("CONSUMER_KEY"));
                 accessTokenRequest.setClientSecret(consumerKeySecretMap.get("CONSUMER_SECRET"));
                 accessTokenRequest.setGrantType(grantType);
-                accessTokenRequest.setAssertion(authorizationCode);
+                accessTokenRequest.setAssertion(assertion);
                 accessTokenRequest.setScopes(scopes);
                 accessTokenInfo = getKeyManager().getNewAccessToken(accessTokenRequest);
             }
