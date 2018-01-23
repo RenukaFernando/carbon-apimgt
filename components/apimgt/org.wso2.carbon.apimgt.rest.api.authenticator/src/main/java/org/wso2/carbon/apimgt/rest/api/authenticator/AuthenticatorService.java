@@ -87,6 +87,11 @@ public class AuthenticatorService {
         grantTypes.add(KeyManagerConstants.REFRESH_GRANT_TYPE);
         APIMAppConfigurations appConfigs = ServiceReferenceHolder.getInstance().getAPIMAppConfiguration();
         String callBackURL = appConfigs.getApimBaseUrl() + AuthenticatorConstants.AUTHORIZATION_CODE_CALLBACK_URL + appName;
+        // Authentication details for Multi-Environment Overview
+        EnvironmentOverviewConfigs envOverviewConfigs = APIMConfigurationService.getInstance().getApimConfigurations()
+                .getEnvironmentConfigurations().getEnvironmentOverviewConfigs();
+        boolean isMultiEnvironmentOverviewEnabled = envOverviewConfigs.isEnabled();
+
         // Get scopes of the application
         String scopes = getApplicationScopes(appName);
         if (log.isDebugEnabled()) {
@@ -107,7 +112,7 @@ public class AuthenticatorService {
                 oAuthData.addProperty(KeyManagerConstants.AUTHORIZATION_ENDPOINT,
                         appConfigs.getAuthorizationEndpoint());
                 oAuthData.addProperty(AuthenticatorConstants.SSO_ENABLED, appConfigs.isSsoEnabled());
-                oAuthData.addProperty(AuthenticatorConstants.AUTO_LOGIN_ENABLED, true);
+                oAuthData.addProperty(AuthenticatorConstants.AUTO_LOGIN_ENABLED, isMultiEnvironmentOverviewEnabled);
             } else {
                 String errorMsg = "No information available in OAuth application.";
                 log.error(errorMsg, ExceptionCodes.OAUTH2_APP_CREATION_FAILED);
