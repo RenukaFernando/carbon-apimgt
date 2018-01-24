@@ -59,7 +59,7 @@ public class AuthenticatorServiceTestCase {
         oAuthData.addProperty(AuthenticatorConstants.SSO_ENABLED, ServiceReferenceHolder.getInstance()
                 .getAPIMAppConfiguration().isSsoEnabled());
         oAuthData.addProperty(AuthenticatorConstants.AUTO_LOGIN_ENABLED, APIMConfigurationService.getInstance().getApimConfigurations()
-                .getEnvironmentConfigurations().getEnvironmentOverviewConfigs().isEnabled());
+                .getEnvironmentConfigurations().getMultiEnvironmentOverview().isEnabled());
 
         KeyManager keyManager = Mockito.mock(KeyManager.class);
         AuthenticatorService authenticatorService = new AuthenticatorService(keyManager, systemApplicationDao);

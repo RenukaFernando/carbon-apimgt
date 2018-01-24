@@ -41,7 +41,7 @@ public class EnvironmentConfigurations {
     private List<String> allowedHosts = Collections.singletonList("");
 
     @Element(description = "Multi-Environment Overview Configurations")
-    private EnvironmentOverviewConfigs environmentOverviewConfigs = new EnvironmentOverviewConfigs();
+    private MultiEnvironmentOverview multiEnvironmentOverview = new MultiEnvironmentOverview();
 
     public String getEnvironmentLabel() {
         return environmentLabel;
@@ -59,11 +59,11 @@ public class EnvironmentConfigurations {
         this.allowedHosts = allowedHosts;
     }
 
-    public EnvironmentOverviewConfigs getEnvironmentOverviewConfigs() {
-        return environmentOverviewConfigs;
+    public MultiEnvironmentOverview getMultiEnvironmentOverview() {
+        return multiEnvironmentOverview;
     }
 
-    public void setEnvironmentOverviewConfigs(EnvironmentOverviewConfigs environmentOverviewConfigs) {
-        this.environmentOverviewConfigs = environmentOverviewConfigs;
+    public void setMultiEnvironmentOverview(MultiEnvironmentOverview multiEnvironmentOverview) {
+        this.multiEnvironmentOverview = multiEnvironmentOverview;
     }
 }

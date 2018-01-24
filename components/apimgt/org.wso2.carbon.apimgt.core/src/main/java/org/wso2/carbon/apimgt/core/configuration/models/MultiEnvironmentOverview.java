@@ -18,28 +18,20 @@
 
 package org.wso2.carbon.apimgt.core.configuration.models;
 
+import org.wso2.carbon.apimgt.core.util.KeyManagerConstants;
 import org.wso2.carbon.config.annotation.Configuration;
 import org.wso2.carbon.config.annotation.Element;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Class to hold Environment configurations
  */
 @Configuration(description = "Multi-Environment Overview Configurations")
-public class EnvironmentOverviewConfigs {
-
-    public EnvironmentOverviewConfigs() {
-        authentication.put("implClass", "");
-        authentication.put("grantType", "urn:ietf:params:oauth:grant-type:jwt-bearer");
-    }
-
+public class MultiEnvironmentOverview {
     @Element(description = "Multi-Environment Overview feature enabled or not")
     private boolean enabled = false;
 
-    @Element(description = "Authentication configs")
-    private Map<String, String> authentication = new HashMap<>();
+    @Element(description = "Authentication Grant Type to authenticate user to other environments")
+    private String authenticationGrantType = KeyManagerConstants.JWT_GRANT_TYPE;
 
     public boolean isEnabled() {
         return enabled;
@@ -49,11 +41,11 @@ public class EnvironmentOverviewConfigs {
         this.enabled = enabled;
     }
 
-    public Map<String, String> getAuthentication() {
-        return authentication;
+    public String getAuthenticationGrantType() {
+        return authenticationGrantType;
     }
 
-    public void setAuthentication(Map<String, String> authentication) {
-        this.authentication = authentication;
+    public void setAuthenticationGrantType(String authenticationGrantType) {
+        this.authenticationGrantType = authenticationGrantType;
     }
 }

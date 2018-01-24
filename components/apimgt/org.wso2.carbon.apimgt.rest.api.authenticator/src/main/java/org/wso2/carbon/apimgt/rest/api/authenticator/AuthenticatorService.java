@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
 import org.wso2.carbon.apimgt.core.api.APIDefinition;
 import org.wso2.carbon.apimgt.core.api.KeyManager;
 import org.wso2.carbon.apimgt.core.configuration.APIMConfigurationService;
-import org.wso2.carbon.apimgt.core.configuration.models.EnvironmentOverviewConfigs;
+import org.wso2.carbon.apimgt.core.configuration.models.MultiEnvironmentOverview;
 import org.wso2.carbon.apimgt.core.dao.SystemApplicationDao;
 import org.wso2.carbon.apimgt.core.exception.APIManagementException;
 import org.wso2.carbon.apimgt.core.exception.APIMgtDAOException;
@@ -83,17 +83,17 @@ public class AuthenticatorService {
     public JsonObject getAuthenticationConfigurations(String appName)
             throws APIManagementException {
         JsonObject oAuthData = new JsonObject();
+        // Authentication details for Multi-Environment Overview
+        MultiEnvironmentOverview envOverviewConfigs = APIMConfigurationService.getInstance().getApimConfigurations()
+                .getEnvironmentConfigurations().getMultiEnvironmentOverview();
+        boolean isMultiEnvironmentOverviewEnabled = envOverviewConfigs.isEnabled();
         List<String> grantTypes = new ArrayList<>();
         grantTypes.add(KeyManagerConstants.PASSWORD_GRANT_TYPE);
         grantTypes.add(KeyManagerConstants.AUTHORIZATION_CODE_GRANT_TYPE);
-        grantTypes.add(KeyManagerConstants.JWT_GRANT_TYPE);
+        grantTypes.add(envOverviewConfigs.getAuthenticationGrantType());
         grantTypes.add(KeyManagerConstants.REFRESH_GRANT_TYPE);
         APIMAppConfigurations appConfigs = ServiceReferenceHolder.getInstance().getAPIMAppConfiguration();
         String callBackURL = appConfigs.getApimBaseUrl() + AuthenticatorConstants.AUTHORIZATION_CODE_CALLBACK_URL + appName;
-        // Authentication details for Multi-Environment Overview
-        EnvironmentOverviewConfigs envOverviewConfigs = APIMConfigurationService.getInstance().getApimConfigurations()
-                .getEnvironmentConfigurations().getEnvironmentOverviewConfigs();
-        boolean isMultiEnvironmentOverviewEnabled = envOverviewConfigs.isEnabled();
 
         // Get scopes of the application
         String scopes = getApplicationScopes(appName);
@@ -149,10 +149,10 @@ public class AuthenticatorService {
         AccessTokenRequest accessTokenRequest = new AccessTokenRequest();
 
         // Authentication details for Multi-Environment Overview
-        EnvironmentOverviewConfigs envOverviewConfigs = APIMConfigurationService.getInstance().getApimConfigurations()
-                .getEnvironmentConfigurations().getEnvironmentOverviewConfigs();
+        MultiEnvironmentOverview envOverviewConfigs = APIMConfigurationService.getInstance().getApimConfigurations()
+                .getEnvironmentConfigurations().getMultiEnvironmentOverview();
         boolean isMultiEnvironmentOverviewEnabled = envOverviewConfigs.isEnabled();
-        String customGrantType = envOverviewConfigs.getAuthentication().get("grantType");
+        String customGrantType = envOverviewConfigs.getAuthenticationGrantType();
 
         // Get scopes of the application
         String scopes = getApplicationScopes(appName);
