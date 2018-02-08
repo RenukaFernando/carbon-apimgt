@@ -24,6 +24,7 @@ import org.wso2.carbon.apimgt.core.configuration.models.EnvironmentConfiguration
 import org.wso2.carbon.config.ConfigurationException;
 import org.wso2.carbon.config.provider.ConfigProvider;
 import org.wso2.carbon.secvault.SecureVault;
+import org.yaml.snakeyaml.error.YAMLException;
 
 import java.util.Map;
 
@@ -34,8 +35,6 @@ public class ServiceReferenceHolder {
     private static final Logger log = LoggerFactory.getLogger(ServiceReferenceHolder.class);
     private static ServiceReferenceHolder instance = new ServiceReferenceHolder();
     private ConfigProvider configProvider;
-    private APIMConfigurations apimConfigurations;
-    private EnvironmentConfigurations environmentConfigurations;
     private SecureVault secureVault;
 
     private ServiceReferenceHolder() {}
@@ -61,20 +60,13 @@ public class ServiceReferenceHolder {
     public APIMConfigurations getAPIMConfiguration() {
         try {
             if (configProvider != null) {
-                apimConfigurations = configProvider.getConfigurationObject(APIMConfigurations.class);
+                return configProvider.getConfigurationObject(APIMConfigurations.class);
             } else {
-                log.error("Configuration provider is null");
+                throw new YAMLException("Configuration provider is null");
             }
         } catch (ConfigurationException e) {
-            log.error("error getting config : org.wso2.carbon.apimgt.core.internal.APIMConfiguration", e);
+            throw new YAMLException("error getting config : org.wso2.carbon.apimgt.core.internal.APIMConfiguration", e);
         }
-
-        if (apimConfigurations == null) {
-            apimConfigurations = new APIMConfigurations();
-            log.info("APIMConfiguration: Setting default configurations...");
-        }
-
-        return apimConfigurations;
     }
 
     /**
@@ -85,19 +77,13 @@ public class ServiceReferenceHolder {
     public EnvironmentConfigurations getEnvironmentConfigurations() {
         try {
             if (configProvider != null) {
-                environmentConfigurations = configProvider.getConfigurationObject(EnvironmentConfigurations.class);
+                return configProvider.getConfigurationObject(EnvironmentConfigurations.class);
             } else {
-                log.error("Configuration provider is null");
+                throw new YAMLException("Configuration provider is null");
             }
         } catch (ConfigurationException e) {
-            log.error("error getting config : org.wso2.carbon.apimgt.core.internal.EnvironmentConfigurations", e);
+            throw new YAMLException("error getting config : org.wso2.carbon.apimgt.core.internal.EnvironmentConfigurations", e);
         }
-
-        if (environmentConfigurations == null) {
-            environmentConfigurations = new EnvironmentConfigurations();
-            log.info("EnvironmentConfigurations: Setting default configurations...");
-        }
-        return environmentConfigurations;
     }
 
     /**
@@ -111,13 +97,12 @@ public class ServiceReferenceHolder {
             if (configProvider != null) {
                 return (Map<String, String>) configProvider.getConfigurationObject(namespace);
             } else {
-                log.error("Configuration provider is null");
+                throw new YAMLException("Configuration provider is null");
             }
         } catch (ConfigurationException e) {
-            log.error("Error while reading the configurations map of namespace : " +
+            throw new YAMLException("Error while reading the configurations map of namespace : " +
                     "org.wso2.carbon.apimgt.core.internal.APIMConfiguration", e);
         }
-        return null;
     }
 
     /**

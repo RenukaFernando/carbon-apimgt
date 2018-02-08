@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.wso2.carbon.apimgt.rest.api.authenticator.configuration.models.APIMAppConfigurations;
 import org.wso2.carbon.config.ConfigurationException;
 import org.wso2.carbon.config.provider.ConfigProvider;
+import org.yaml.snakeyaml.error.YAMLException;
 
 import java.util.Map;
 
@@ -33,7 +34,6 @@ public class ServiceReferenceHolder {
     private static final Logger log = LoggerFactory.getLogger(ServiceReferenceHolder.class);
     private static ServiceReferenceHolder instance = new ServiceReferenceHolder();
     private ConfigProvider configProvider;
-    private APIMAppConfigurations config = null;
 
     private ServiceReferenceHolder() {
 
@@ -50,20 +50,13 @@ public class ServiceReferenceHolder {
     public APIMAppConfigurations getAPIMAppConfiguration() {
         try {
             if (configProvider != null) {
-                config = configProvider.getConfigurationObject(APIMAppConfigurations.class);
+                return configProvider.getConfigurationObject(APIMAppConfigurations.class);
             } else {
-                log.error("Configuration provider is null");
+                throw new YAMLException("Configuration provider is null");
             }
         } catch (ConfigurationException e) {
-            log.error("Error getting config : org.wso2.carbon.apimgt.rest.api.authenticator.internal.APIMAppConfiguration", e);
+            throw new YAMLException("Error getting config : org.wso2.carbon.apimgt.rest.api.authenticator.internal.APIMAppConfiguration", e);
         }
-
-        if (config == null) {
-            config = new APIMAppConfigurations();
-            log.info("Setting default configurations...");
-        }
-
-        return config;
     }
     /**
      * This method is to get configuration map of a given namespace
@@ -76,12 +69,11 @@ public class ServiceReferenceHolder {
             if (configProvider != null) {
                 return (Map<String, String>) configProvider.getConfigurationObject(namespace);
             } else {
-                log.error("Configuration provider is null");
+                throw new YAMLException("Configuration provider is null");
             }
         } catch (ConfigurationException e) {
-            log.error("Error while reading the configurations map of namespace : " +
+            throw new YAMLException("Error while reading the configurations map of namespace : " +
                     "org.wso2.carbon.apimgt.rest.api.authenticator.internal.APIMAppConfiguration", e);
         }
-        return null;
     }
 }

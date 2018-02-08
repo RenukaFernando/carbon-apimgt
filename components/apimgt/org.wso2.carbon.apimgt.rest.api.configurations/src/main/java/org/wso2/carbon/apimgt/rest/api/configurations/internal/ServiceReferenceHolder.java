@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.wso2.carbon.apimgt.rest.api.configurations.models.APIMUIConfigurations;
 import org.wso2.carbon.config.ConfigurationException;
 import org.wso2.carbon.config.provider.ConfigProvider;
+import org.yaml.snakeyaml.error.YAMLException;
 
 /**
  * Class used to hold the APIM store/publisher configurations.
@@ -31,7 +32,6 @@ public class ServiceReferenceHolder {
     private static final Logger log = LoggerFactory.getLogger(ServiceReferenceHolder.class);
     private static ServiceReferenceHolder instance = new ServiceReferenceHolder();
     private ConfigProvider configProvider;
-    private APIMUIConfigurations apimUIConfigurations = null;
 
     private ServiceReferenceHolder() {
     }
@@ -47,19 +47,12 @@ public class ServiceReferenceHolder {
     public APIMUIConfigurations getApimUIConfigurations() {
         try {
             if (configProvider != null) {
-                apimUIConfigurations = configProvider.getConfigurationObject(APIMUIConfigurations.class);
+                return configProvider.getConfigurationObject(APIMUIConfigurations.class);
             } else {
-                log.error("Configuration provider is null");
+                throw new YAMLException("Configuration provider is null");
             }
         } catch (ConfigurationException e) {
-            log.error("Error getting config : org.wso2.carbon.apimgt.rest.api.configurations.models.EnvironmentConfigurations", e);
+            throw new YAMLException("Error getting config : org.wso2.carbon.apimgt.rest.api.configurations.models.EnvironmentConfigurations", e);
         }
-
-        if (apimUIConfigurations == null) {
-            apimUIConfigurations = new APIMUIConfigurations();
-            log.info("Setting default configurations...");
-        }
-
-        return apimUIConfigurations;
     }
 }
