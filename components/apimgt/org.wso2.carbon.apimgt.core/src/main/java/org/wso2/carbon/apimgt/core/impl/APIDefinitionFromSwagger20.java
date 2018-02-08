@@ -52,6 +52,7 @@ import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.apimgt.core.api.APIDefinition;
+import org.wso2.carbon.apimgt.core.configuration.APIMConfigurationService;
 import org.wso2.carbon.apimgt.core.configuration.models.KeyMgtConfigurations;
 import org.wso2.carbon.apimgt.core.exception.APIManagementException;
 import org.wso2.carbon.apimgt.core.exception.ExceptionCodes;
@@ -476,8 +477,8 @@ public class APIDefinitionFromSwagger20 implements APIDefinition {
     }
 
     private void addSecuritySchemeToSwaggerDefinition(Swagger swagger, API api) {
-        KeyMgtConfigurations keyMgtConfigurations = ServiceReferenceHolder.getInstance().
-                getAPIMConfiguration().getKeyManagerConfigs();
+        KeyMgtConfigurations keyMgtConfigurations = APIMConfigurationService.getInstance().getApimConfigurations()
+                .getKeyManagerConfigs();
         if ((api.getSecurityScheme() & 2) == 2) { //apikey
             log.debug("API security scheme : API Key Scheme");
             if (swagger.getSecurityDefinitions() == null || !swagger.getSecurityDefinitions().containsKey
@@ -948,7 +949,7 @@ public class APIDefinitionFromSwagger20 implements APIDefinition {
 
     @Override
     public String addScopeToSwaggerDefinition(String resourceConfigJSON, Scope scope) {
-        KeyMgtConfigurations keyManagerConfigs = ServiceReferenceHolder.getInstance().getAPIMConfiguration()
+        KeyMgtConfigurations keyManagerConfigs = APIMConfigurationService.getInstance().getApimConfigurations()
                 .getKeyManagerConfigs();
         SwaggerParser swaggerParser = new SwaggerParser();
         Swagger swagger = swaggerParser.parse(resourceConfigJSON);

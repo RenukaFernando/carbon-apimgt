@@ -21,9 +21,9 @@ package org.wso2.carbon.apimgt.core.impl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.apimgt.core.api.APIGateway;
+import org.wso2.carbon.apimgt.core.configuration.APIMConfigurationService;
 import org.wso2.carbon.apimgt.core.configuration.models.APIMConfigurations;
 import org.wso2.carbon.apimgt.core.exception.GatewayException;
-import org.wso2.carbon.apimgt.core.internal.ServiceReferenceHolder;
 import org.wso2.carbon.apimgt.core.models.API;
 import org.wso2.carbon.apimgt.core.models.APISummary;
 import org.wso2.carbon.apimgt.core.models.Application;
@@ -59,7 +59,7 @@ public class APIGatewayPublisherImpl implements APIGateway {
     private String threatProtectionTopic;
 
     public APIGatewayPublisherImpl() {
-        config = ServiceReferenceHolder.getInstance().getAPIMConfiguration();
+        config = APIMConfigurationService.getInstance().getApimConfigurations();
         publisherTopic = config.getBrokerConfigurations().getPublisherTopic();
         storeTopic = config.getBrokerConfigurations().getStoreTopic();
         throttleTopic = config.getBrokerConfigurations().getThrottleTopic();

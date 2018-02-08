@@ -19,6 +19,7 @@
 package org.wso2.carbon.apimgt.rest.api.core.utils;
 
 import com.google.common.net.InetAddresses;
+import org.wso2.carbon.apimgt.core.configuration.APIMConfigurationService;
 import org.wso2.carbon.apimgt.core.internal.ServiceReferenceHolder;
 import org.wso2.carbon.apimgt.core.models.API;
 import org.wso2.carbon.apimgt.core.models.APIStatus;
@@ -312,8 +313,8 @@ public class SampleTestObjectCreator {
      * @return RegistrationSummary object
      */
     protected static RegistrationSummary createUniqueRegistrationSummary() {
-        RegistrationSummary registrationSummary = new RegistrationSummary(ServiceReferenceHolder.getInstance()
-                .getAPIMConfiguration());
+        RegistrationSummary registrationSummary = new RegistrationSummary(APIMConfigurationService.getInstance()
+                .getApimConfigurations());
         return registrationSummary;
     }
 

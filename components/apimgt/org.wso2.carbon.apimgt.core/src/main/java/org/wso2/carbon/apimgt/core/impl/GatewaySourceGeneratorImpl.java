@@ -29,9 +29,9 @@ import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.apimgt.core.api.GatewaySourceGenerator;
+import org.wso2.carbon.apimgt.core.configuration.APIMConfigurationService;
 import org.wso2.carbon.apimgt.core.configuration.models.APIMConfigurations;
 import org.wso2.carbon.apimgt.core.exception.ExceptionCodes;
-import org.wso2.carbon.apimgt.core.internal.ServiceReferenceHolder;
 import org.wso2.carbon.apimgt.core.models.Endpoint;
 import org.wso2.carbon.apimgt.core.template.APIConfigContext;
 import org.wso2.carbon.apimgt.core.template.APITemplateException;
@@ -55,7 +55,7 @@ public class GatewaySourceGeneratorImpl implements GatewaySourceGenerator {
     private String packageName;
 
     public GatewaySourceGeneratorImpl() {
-        APIMConfigurations config = ServiceReferenceHolder.getInstance().getAPIMConfiguration();
+        APIMConfigurations config = APIMConfigurationService.getInstance().getApimConfigurations();
         packageName = config.getGatewayPackageName();
     }
 

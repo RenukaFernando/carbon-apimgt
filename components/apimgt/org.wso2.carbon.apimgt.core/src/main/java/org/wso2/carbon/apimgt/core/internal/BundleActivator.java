@@ -32,6 +32,7 @@ import org.osgi.service.jndi.JNDIContextManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.apimgt.core.api.Broker;
+import org.wso2.carbon.apimgt.core.configuration.APIMConfigurationService;
 import org.wso2.carbon.apimgt.core.dao.impl.DAOUtil;
 import org.wso2.carbon.apimgt.core.dao.impl.DataSource;
 import org.wso2.carbon.apimgt.core.dao.impl.DataSourceImpl;
@@ -72,7 +73,7 @@ public class BundleActivator {
             DataSource dataSourceAMDB = new DataSourceImpl(
                     (HikariDataSource) ctx.lookup("java:comp/env/jdbc/WSO2AMDB"));
             DAOUtil.initialize(dataSourceAMDB);
-            boolean isAnalyticsEnabled = ServiceReferenceHolder.getInstance().getAPIMConfiguration()
+            boolean isAnalyticsEnabled = APIMConfigurationService.getInstance().getApimConfigurations()
                     .getAnalyticsConfigurations().isEnabled();
             if (isAnalyticsEnabled) {
                 DataSource dataSourceStatDB = new DataSourceImpl(
@@ -100,7 +101,7 @@ public class BundleActivator {
 
         // securing files
         try {
-            boolean fileEncryptionEnabled = ServiceReferenceHolder.getInstance().getAPIMConfiguration()
+            boolean fileEncryptionEnabled = APIMConfigurationService.getInstance().getApimConfigurations()
                     .getFileEncryptionConfigurations().isEnabled();
             if (fileEncryptionEnabled) {
                 FileEncryptionUtility fileEncryptionUtility = FileEncryptionUtility.getInstance();

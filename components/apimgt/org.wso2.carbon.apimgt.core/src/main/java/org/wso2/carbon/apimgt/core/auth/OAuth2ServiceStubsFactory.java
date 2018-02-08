@@ -18,8 +18,8 @@
 
 package org.wso2.carbon.apimgt.core.auth;
 
+import org.wso2.carbon.apimgt.core.configuration.APIMConfigurationService;
 import org.wso2.carbon.apimgt.core.configuration.models.KeyMgtConfigurations;
-import org.wso2.carbon.apimgt.core.internal.ServiceReferenceHolder;
 
 /**
  * Factory class to create OAuth2 service stubs
@@ -32,7 +32,7 @@ public class OAuth2ServiceStubsFactory {
      * @return {@link OAuth2ServiceStubs} object
      */
     public static OAuth2ServiceStubs getOAuth2ServiceStubs() {
-        KeyMgtConfigurations keyManagerConfigs = ServiceReferenceHolder.getInstance().getAPIMConfiguration()
+        KeyMgtConfigurations keyManagerConfigs = APIMConfigurationService.getInstance().getApimConfigurations()
                 .getKeyManagerConfigs();
         return new OAuth2ServiceStubs(keyManagerConfigs.getTokenEndpoint(), keyManagerConfigs.getRevokeEndpoint(),
                 keyManagerConfigs.getIntrospectEndpoint(), keyManagerConfigs.getKeyManagerCertAlias(),

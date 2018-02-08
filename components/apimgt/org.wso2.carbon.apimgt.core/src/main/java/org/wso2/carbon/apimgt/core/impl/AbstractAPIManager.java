@@ -32,6 +32,7 @@ import org.wso2.carbon.apimgt.core.api.IdentityProvider;
 import org.wso2.carbon.apimgt.core.api.KeyManager;
 import org.wso2.carbon.apimgt.core.api.WorkflowExecutor;
 import org.wso2.carbon.apimgt.core.api.WorkflowResponse;
+import org.wso2.carbon.apimgt.core.configuration.APIMConfigurationService;
 import org.wso2.carbon.apimgt.core.configuration.models.APIMConfigurations;
 import org.wso2.carbon.apimgt.core.dao.APISubscriptionDAO;
 import org.wso2.carbon.apimgt.core.dao.ApiDAO;
@@ -46,7 +47,6 @@ import org.wso2.carbon.apimgt.core.exception.APIMgtDAOException;
 import org.wso2.carbon.apimgt.core.exception.APIMgtResourceAlreadyExistsException;
 import org.wso2.carbon.apimgt.core.exception.ExceptionCodes;
 import org.wso2.carbon.apimgt.core.exception.WorkflowException;
-import org.wso2.carbon.apimgt.core.internal.ServiceReferenceHolder;
 import org.wso2.carbon.apimgt.core.models.API;
 import org.wso2.carbon.apimgt.core.models.Application;
 import org.wso2.carbon.apimgt.core.models.DocumentContent;
@@ -105,7 +105,7 @@ public abstract class AbstractAPIManager implements APIManager {
         this.threatProtectionDAO = threatProtectionDAO;
         this.gatewaySourceGenerator = gatewaySourceGenerator;
         this.apiGatewayPublisher = apiGatewayPublisher;
-        this.config = ServiceReferenceHolder.getInstance().getAPIMConfiguration();
+        this.config = APIMConfigurationService.getInstance().getApimConfigurations();
     }
 
     public AbstractAPIManager(String username, IdentityProvider idp, KeyManager keyManager, ApiDAO apiDAO,

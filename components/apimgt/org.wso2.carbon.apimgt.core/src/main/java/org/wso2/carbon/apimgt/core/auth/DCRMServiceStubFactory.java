@@ -23,9 +23,9 @@ import feign.Feign;
 import feign.auth.BasicAuthRequestInterceptor;
 import feign.gson.GsonDecoder;
 import feign.gson.GsonEncoder;
+import org.wso2.carbon.apimgt.core.configuration.APIMConfigurationService;
 import org.wso2.carbon.apimgt.core.configuration.models.KeyMgtConfigurations;
 import org.wso2.carbon.apimgt.core.exception.APIManagementException;
-import org.wso2.carbon.apimgt.core.internal.ServiceReferenceHolder;
 import org.wso2.carbon.apimgt.core.util.AMSSLSocketFactory;
 
 /**
@@ -40,7 +40,7 @@ public class DCRMServiceStubFactory {
      * @throws APIManagementException if error occurs while crating DCR(M) service stub
      */
     public static DCRMServiceStub getDCRMServiceStub() throws APIManagementException {
-        KeyMgtConfigurations keyManagerConfigs = ServiceReferenceHolder.getInstance().getAPIMConfiguration()
+        KeyMgtConfigurations keyManagerConfigs = APIMConfigurationService.getInstance().getApimConfigurations()
                 .getKeyManagerConfigs();
         return getDCRMServiceStub(keyManagerConfigs.getDcrEndpoint(),
                 keyManagerConfigs.getKeyManagerCredentials().getUsername(),

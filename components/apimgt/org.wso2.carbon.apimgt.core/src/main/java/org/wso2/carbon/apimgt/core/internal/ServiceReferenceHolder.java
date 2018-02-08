@@ -82,7 +82,8 @@ public class ServiceReferenceHolder {
                 throw new YAMLException("Configuration provider is null");
             }
         } catch (ConfigurationException e) {
-            throw new YAMLException("error getting config : org.wso2.carbon.apimgt.core.internal.EnvironmentConfigurations", e);
+            throw new YAMLException("error getting config : " +
+                    "org.wso2.carbon.apimgt.core.internal.EnvironmentConfigurations", e);
         }
     }
 

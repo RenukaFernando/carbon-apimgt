@@ -23,9 +23,9 @@ import feign.Feign;
 import feign.auth.BasicAuthRequestInterceptor;
 import feign.gson.GsonDecoder;
 import feign.gson.GsonEncoder;
+import org.wso2.carbon.apimgt.core.configuration.APIMConfigurationService;
 import org.wso2.carbon.apimgt.core.configuration.models.IdentityProviderConfigurations;
 import org.wso2.carbon.apimgt.core.exception.APIManagementException;
-import org.wso2.carbon.apimgt.core.internal.ServiceReferenceHolder;
 import org.wso2.carbon.apimgt.core.util.AMSSLSocketFactory;
 
 /**
@@ -42,7 +42,7 @@ public class SCIMServiceStubFactory {
      * @throws APIManagementException if error occurs while crating SCIM service stub
      */
     public static SCIMServiceStub getSCIMServiceStub() throws APIManagementException {
-        IdentityProviderConfigurations idpConfigs = ServiceReferenceHolder.getInstance().getAPIMConfiguration()
+        IdentityProviderConfigurations idpConfigs = APIMConfigurationService.getInstance().getApimConfigurations()
                 .getIdentityProviderConfigs();
         return getSCIMServiceStub(idpConfigs.getIdentityProviderBaseUrl(),
                 idpConfigs.getIdentityProviderCredentials().getUsername(),

@@ -22,9 +22,9 @@ package org.wso2.carbon.apimgt.core.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.apimgt.core.configuration.APIMConfigurationService;
 import org.wso2.carbon.apimgt.core.configuration.models.MailConfigurations;
 import org.wso2.carbon.apimgt.core.exception.APIManagementException;
-import org.wso2.carbon.apimgt.core.internal.ServiceReferenceHolder;
 import org.wso2.carbon.apimgt.core.template.dto.NotificationDTO;
 
 import java.util.HashSet;
@@ -46,7 +46,7 @@ import javax.mail.internet.MimeMessage;
  */
 public class NewApiVersionMailNotifier extends Notifier {
     private static final Log log = LogFactory.getLog(NewApiVersionMailNotifier.class);
-    static MailConfigurations mailConfigurations = ServiceReferenceHolder.getInstance().getAPIMConfiguration().
+    static MailConfigurations mailConfigurations = APIMConfigurationService.getInstance().getApimConfigurations().
             getNotificationConfigurations().getMailConfigurations();
     private static final String SMTP_HOST_NAME = mailConfigurations.getSmtpHostname();
     private static final String SMTP_AUTH_USER = mailConfigurations.getSmtpAuthUser();

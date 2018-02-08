@@ -22,6 +22,7 @@ package org.wso2.carbon.apimgt.core.dao.impl;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.carbon.apimgt.core.configuration.APIMConfigurationService;
 import org.wso2.carbon.apimgt.core.dao.APISubscriptionDAO;
 import org.wso2.carbon.apimgt.core.dao.AnalyticsDAO;
 import org.wso2.carbon.apimgt.core.dao.ApiDAO;
@@ -35,7 +36,6 @@ import org.wso2.carbon.apimgt.core.dao.ThreatProtectionDAO;
 import org.wso2.carbon.apimgt.core.dao.WorkflowDAO;
 import org.wso2.carbon.apimgt.core.exception.APIMgtDAOException;
 import org.wso2.carbon.apimgt.core.exception.ExceptionCodes;
-import org.wso2.carbon.apimgt.core.internal.ServiceReferenceHolder;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -326,7 +326,7 @@ public class DAOFactory {
      */
     public static AnalyticsDAO getAnalyticsDAO() throws APIMgtDAOException {
         AnalyticsDAO analyticsDAO;
-        boolean isAnalyticsEnabled = ServiceReferenceHolder.getInstance().getAPIMConfiguration()
+        boolean isAnalyticsEnabled = APIMConfigurationService.getInstance().getApimConfigurations()
                 .getAnalyticsConfigurations().isEnabled();
         if (isAnalyticsEnabled) {
             try (Connection connection = DAOUtil.getAnalyticsConnection()) {

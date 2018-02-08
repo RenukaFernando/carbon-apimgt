@@ -21,11 +21,11 @@ package org.wso2.carbon.apimgt.core.impl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.apimgt.core.api.Broker;
+import org.wso2.carbon.apimgt.core.configuration.APIMConfigurationService;
 import org.wso2.carbon.apimgt.core.configuration.models.BrokerConfigurations;
 import org.wso2.carbon.apimgt.core.configuration.models.JMSConnectionConfiguration;
 import org.wso2.carbon.apimgt.core.exception.BrokerException;
 import org.wso2.carbon.apimgt.core.exception.ExceptionCodes;
-import org.wso2.carbon.apimgt.core.internal.ServiceReferenceHolder;
 import org.wso2.carbon.apimgt.core.util.BrokerUtil;
 
 import java.lang.reflect.Constructor;
@@ -45,7 +45,7 @@ public class BrokerImpl implements Broker {
     private BrokerConfigurations config;
 
     public BrokerImpl() {
-        config = ServiceReferenceHolder.getInstance().getAPIMConfiguration().getBrokerConfigurations();
+        config = APIMConfigurationService.getInstance().getApimConfigurations().getBrokerConfigurations();
         JMSConnectionConfiguration jmsConnectionConfiguration = config.getJmsConnectionConfiguration();
         Class<?> clientClass = null;
         Constructor<?> construct = null;

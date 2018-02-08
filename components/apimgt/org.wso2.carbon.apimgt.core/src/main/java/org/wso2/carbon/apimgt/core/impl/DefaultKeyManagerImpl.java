@@ -27,11 +27,11 @@ import org.slf4j.LoggerFactory;
 import org.wso2.carbon.apimgt.core.api.KeyManager;
 import org.wso2.carbon.apimgt.core.api.RestCallUtil;
 import org.wso2.carbon.apimgt.core.auth.dto.DCRClientInfo;
+import org.wso2.carbon.apimgt.core.configuration.APIMConfigurationService;
 import org.wso2.carbon.apimgt.core.configuration.models.KeyMgtConfigurations;
 import org.wso2.carbon.apimgt.core.exception.APIManagementException;
 import org.wso2.carbon.apimgt.core.exception.ExceptionCodes;
 import org.wso2.carbon.apimgt.core.exception.KeyManagementException;
-import org.wso2.carbon.apimgt.core.internal.ServiceReferenceHolder;
 import org.wso2.carbon.apimgt.core.models.API;
 import org.wso2.carbon.apimgt.core.models.AccessTokenInfo;
 import org.wso2.carbon.apimgt.core.models.AccessTokenRequest;
@@ -66,7 +66,7 @@ public class DefaultKeyManagerImpl implements KeyManager {
     private RestCallUtil restCallUtil;
 
     public DefaultKeyManagerImpl() {
-        keyManagerConfigs = ServiceReferenceHolder.getInstance().getAPIMConfiguration().getKeyManagerConfigs();
+        keyManagerConfigs = APIMConfigurationService.getInstance().getApimConfigurations().getKeyManagerConfigs();
         restCallUtil = new RestCallUtilImpl();
     }
 

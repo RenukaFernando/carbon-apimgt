@@ -39,6 +39,7 @@ import org.wso2.carbon.apimgt.core.api.KeyManager;
 import org.wso2.carbon.apimgt.core.api.WSDLProcessor;
 import org.wso2.carbon.apimgt.core.api.WorkflowExecutor;
 import org.wso2.carbon.apimgt.core.api.WorkflowResponse;
+import org.wso2.carbon.apimgt.core.configuration.APIMConfigurationService;
 import org.wso2.carbon.apimgt.core.configuration.models.KeyMgtConfigurations;
 import org.wso2.carbon.apimgt.core.configuration.models.NotificationConfigurations;
 import org.wso2.carbon.apimgt.core.configuration.models.ServiceDiscoveryConfigurations;
@@ -65,7 +66,6 @@ import org.wso2.carbon.apimgt.core.exception.NotificationException;
 import org.wso2.carbon.apimgt.core.exception.ServiceDiscoveryException;
 import org.wso2.carbon.apimgt.core.exception.WorkflowException;
 import org.wso2.carbon.apimgt.core.executors.NotificationExecutor;
-import org.wso2.carbon.apimgt.core.internal.ServiceReferenceHolder;
 import org.wso2.carbon.apimgt.core.models.API;
 import org.wso2.carbon.apimgt.core.models.APIResource;
 import org.wso2.carbon.apimgt.core.models.CorsConfiguration;
@@ -2206,8 +2206,8 @@ public class APIPublisherImpl extends AbstractAPIManager implements APIPublisher
     private void sendNotification(String apiId, String apiName, String newVersion)
             throws APIManagementException {
         Set<String> subscriberList;
-        NotificationConfigurations notificationConfigurations = ServiceReferenceHolder.getInstance().
-                getAPIMConfiguration().getNotificationConfigurations();
+        NotificationConfigurations notificationConfigurations = APIMConfigurationService.getInstance()
+                .getApimConfigurations().getNotificationConfigurations();
 
         // check notification Enabled
         if (notificationConfigurations.getNotificationEnable()) {

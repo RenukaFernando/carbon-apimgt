@@ -21,6 +21,7 @@ package org.wso2.carbon.apimgt.core.impl;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.carbon.apimgt.core.configuration.APIMConfigurationService;
 import org.wso2.carbon.apimgt.core.configuration.models.FileEncryptionConfigurations;
 import org.wso2.carbon.apimgt.core.exception.APIManagementException;
 import org.wso2.carbon.apimgt.core.exception.APIMgtDAOException;
@@ -81,7 +82,7 @@ public class FileEncryptionUtility {
      * @throws APIManagementException if an error occurs while initializing the file encryption
      */
     public void init() throws APIManagementException {
-        setConfig(ServiceReferenceHolder.getInstance().getAPIMConfiguration().getFileEncryptionConfigurations());
+        setConfig(APIMConfigurationService.getInstance().getApimConfigurations().getFileEncryptionConfigurations());
         setAesKeyFileLocation();
         setSecureVault(ServiceReferenceHolder.getInstance().getSecureVault());
         if (secureVault == null) {
