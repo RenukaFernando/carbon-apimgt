@@ -2584,6 +2584,139 @@ paths:
           "https://127.0.0.1:9443/api/am/admin/v2/labels/d7cf8523-9180-4255-84fa-6cb171c1f779"'
 
   ######################################################
+  # The "VHost" resource API
+  ######################################################
+  /vhosts:
+    get:
+      tags:
+        - VHost (Collection)
+      summary: Get all created VHosts
+      description: |
+        This operation can be used to retrieve a list of VHost with the gateway environments it is attached to.
+      responses:
+        200:
+          description: |
+            OK.
+            VHost list returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VHostList'
+      security:
+        - OAuth2Security:
+            - apim:admin
+            - apim:vhost_read
+      x-code-samples:
+        - lang: Shell
+          source: 'curl -k -H "Authorization: Bearer ae4eae22-3f65-387b-a171-d37eaa366fa8"
+         "https://127.0.0.1:9443/api/am/admin/v1/vhosts"'
+
+    post:
+      tags:
+        - VHost
+      summary: Add a VHost
+      description: |
+        Add a new VHost
+      requestBody:
+        description: |
+          VHost object that should to be added
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VHost'
+        required: true
+      responses:
+        201:
+          description: |
+            Created.
+            Successful response with the newly created object as entity in the body.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VHost'
+        400:
+          $ref: '#/components/responses/BadRequest'
+      security:
+        - OAuth2Security:
+            - apim:admin
+            - apim:vhost_manage
+      x-code-samples:
+        - lang: Shell
+          source: 'curl -k -X POST -H "Authorization: Bearer ae4eae22-3f65-387b-a171-d37eaa366fa8"
+         -H "Content-Type: application/json" -d @data.json "https://127.0.0.1:9443/api/am/admin/v1/vhosts"'
+
+  ######################################################
+  # The "Individual VHosts" resource APIs
+  ######################################################
+  /vhosts/{vhostId}:
+    put:
+      tags:
+        - VHosts
+      summary: Update a VHosts
+      description: |
+        Update a VHosts by VHosts Id
+      parameters:
+        - $ref: '#/components/parameters/vhostId'
+      requestBody:
+        description: |
+          VHost object with updated information
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VHost'
+        required: true
+      responses:
+        200:
+          description: |
+            OK.
+            VHost updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VHost'
+        400:
+          $ref: '#/components/responses/BadRequest'
+        404:
+          $ref: '#/components/responses/NotFound'
+      security:
+        - OAuth2Security:
+            - apim:admin
+            - apim:vhost_manage
+      x-code-samples:
+        - lang: Shell
+          source: 'curl -k -X PUT -H "Authorization: Bearer ae4eae22-3f65-387b-a171-d37eaa366fa8"
+         -H "Content-Type: application/json" -d @data.json "https://127.0.0.1:9443/api/am/admin/v1/vhost/d7cf8523-9180-4255-84fa-6cb171c1f779"'
+
+    delete:
+      tags:
+        - VHost
+      summary: Delete a VHost
+      description: |
+        Delete a VHost by VHost Id
+      parameters:
+        - $ref: '#/components/parameters/vhostId'
+      # - $ref: '#/components/parameters/If-Match'
+      # - $ref: '#/components/parameters/If-Unmodified-Since'
+      responses:
+        200:
+          description: |
+            OK.
+            VHost successfully deleted.
+          content: {}
+        404:
+          $ref: '#/components/responses/NotFound'
+      security:
+        - OAuth2Security:
+            - apim:admin
+            - apim:vhost_manage
+      x-code-samples:
+        - lang: Shell
+          source: 'curl -k -X DELETE -H "Authorization: Bearer ae4eae22-3f65-387b-a171-d37eaa366fa8"
+         "https://127.0.0.1:9443/api/am/admin/v1/vhosts/d7cf8523-9180-4255-84fa-6cb171c1f779"'
+
+
+    ######################################################
+
   # The Bot Detection Data API resources
   ######################################################
   /bot-detection-data:
@@ -4591,6 +4724,47 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Label'
+    VHost:
+      title: VHost
+      required:
+        - name
+      type: object
+      properties:
+        id:
+          type: string
+          readOnly: true
+          example: ece92bdc-e1e6-325c-b6f4-656208a041e9
+        name:
+          maxLength: 255
+          minLength: 1
+          type: string
+          example: Sea Foods
+        description:
+          maxLength: 1024
+          type: string
+          example: Chinese sea foods
+        url:
+          maxLength: 1024
+          type: string
+          example: https://zfoods.com
+        gatewayEnvironments:
+          type: array
+          items:
+            type: string
+            example: http://localhost:9443/
+    VHostList:
+      title: Vhost List
+      type: object
+      properties:
+        count:
+          type: integer
+          description: |
+            Number of Vhosts returned.
+          example: 1
+        list:
+          type: array
+          items:
+            $ref: '#/components/schemas/VHost'
     PublishStatus:
       title: Usage publish status
       type: object
@@ -5426,6 +5600,14 @@ components:
       required: true
       schema:
         type: string
+    vhostId:
+      name: vhostId
+      in: path
+      description: |
+        VHost ID
+      required: true
+      schema:
+        type: string
     policyId:
       name: policyId
       in: path
@@ -5582,6 +5764,8 @@ components:
               operations
             apim:label_manage: Manage microgateway labels
             apim:label_read: Retrieve microgateway labels
+            apim:vhost_manage: Manage VHosts
+            apim:vhost_read: Retrieve VHosts
             apim:monetization_usage_publish: Retrieve and publish Monetization related
               usage records
             apim:api_workflow_approve: Manage workflows

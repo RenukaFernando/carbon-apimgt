@@ -92,6 +92,7 @@ public final class RestApiConstants {
     public static final String RESOURCE_PATH_API_PRODUCTS = "/api-products";
     public static final String RESOURCE_PATH_APPLICATIONS = "/applications";
     public static final String RESOURCE_PATH_THROTTLING = "/throttling";
+    public static final String RESOURCE_PATH_VHost = "/vhosts";
     public static final String RESOURCE_PATH_LABEL = "/labels";
     public static final String RESOURCE_PATH_SHARED_SCOPES =  "/scopes";
     public static final String RESOURCE_PATH_SHARED_SCOPES_SCOPE_ID =
