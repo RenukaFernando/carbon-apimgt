@@ -3070,6 +3070,37 @@ public class SQLConstants {
             "UPDATE AM_APPLICATION SET GROUP_ID = '' WHERE APPLICATION_ID = ?";
 
 
+    /** VHost related constants **/
+
+    public static final String GET_VHOST_BY_TENANT_SQL = "SELECT * FROM AM_VHOST WHERE TENANT_DOMAIN = ?";
+
+    public static final String GET_VHOST_GW_ENV_BY_ID_SQL = "SELECT * FROM AM_VHOST_GW_ENV_MAPPING WHERE ID = ?";
+
+    public static final String GET_VHOST_NAME_COUNT_BY_TENANT_SQL =
+            "SELECT COUNT(ID) AS VHOST_COUNT FROM AM_VHOST WHERE LOWER(NAME) = LOWER(?) AND TENANT_DOMAIN = ?";
+
+    public static final String GET_VHOST_COUNT_BY_URL_SQL =
+            "SELECT COUNT(ID) AS VHOST_COUNT FROM AM_VHOST WHERE LOWER(URL) = LOWER(?)";
+
+    public static final String GET_VHOST_ATTACHED_COUNT_SQL =
+            "SELECT COUNT(REVISION_UUID) AS DEPLOYED_REVISION_COUNT " +
+                    "FROM AM_DEPLOYMENT_REVISION_MAPPING " +
+                    "WHERE VHOST_ID = (SELECT UUID FROM AM_VHOST WHERE ID = ?)";
+
+    public static final String INSERT_VHOST_SQL = "INSERT INTO " +
+            "AM_VHOST (UUID, NAME, TENANT_DOMAIN, URL, DESCRIPTION) " +
+            "VALUES (?,?,?,?,?)";
+
+    public static final String UPDATE_VHOST_SQL = "UPDATE AM_VHOST DESCRIPTION = ? WHERE UUID = ?";
+
+    public static final String DELETE_VHOST_SQL = "DELETE FROM AM_VHOST WHERE ID = ?";
+
+    public static final String INSERT_VHOST_GW_ENV_MAPPING_SQL = "INSERT INTO " +
+            "AM_VHOST_GW_ENV_MAPPING (VHOST_ID, DEPLOYMENT_NAME) " +
+            "VALUES (?,?)";
+
+    public static final String DELETE_VHOST_GW_ENV_MAPPING_SQL = "DELETE FROM AM_VHOST_GW_ENV_MAPPING WHERE VHOST_ID = ?";
+
     /** Label related constants **/
 
     public static final String GET_LABEL_BY_TENANT = "select * from AM_LABELS where AM_LABELS.TENANT_DOMAIN= ? ";

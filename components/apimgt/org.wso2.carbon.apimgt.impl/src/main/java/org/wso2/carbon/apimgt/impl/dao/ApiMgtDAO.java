@@ -66,6 +66,7 @@ import org.wso2.carbon.apimgt.api.model.SubscribedAPI;
 import org.wso2.carbon.apimgt.api.model.Subscriber;
 import org.wso2.carbon.apimgt.api.model.Tier;
 import org.wso2.carbon.apimgt.api.model.URITemplate;
+import org.wso2.carbon.apimgt.api.model.VHost;
 import org.wso2.carbon.apimgt.api.model.Workflow;
 import org.wso2.carbon.apimgt.api.model.botDataAPI.BotDetectionData;
 import org.wso2.carbon.apimgt.api.model.graphql.queryanalysis.CustomComplexityDetails;
@@ -94,7 +95,6 @@ import org.wso2.carbon.apimgt.impl.dao.constants.SQLConstants;
 import org.wso2.carbon.apimgt.impl.dao.constants.SQLConstants.ThrottleSQLConstants;
 import org.wso2.carbon.apimgt.impl.dto.APIInfoDTO;
 import org.wso2.carbon.apimgt.impl.dto.APIKeyInfoDTO;
-import org.wso2.carbon.apimgt.impl.dto.APIKeyValidationInfoDTO;
 import org.wso2.carbon.apimgt.impl.dto.APISubscriptionInfoDTO;
 import org.wso2.carbon.apimgt.impl.dto.ApplicationRegistrationWorkflowDTO;
 import org.wso2.carbon.apimgt.impl.dto.TierPermissionDTO;
@@ -132,7 +132,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLIntegrityConstraintViolationException;
-import java.sql.Statement;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
@@ -13625,6 +13624,223 @@ public class ApiMgtDAO {
             APIMgtDBUtil.closeAllConnections(prepStmt, connection, rs);
         }
         return application;
+    }
+
+    /**
+     * Add VHost
+     * @param tenantDomain tenant domain
+     * @param vHost VHost
+     * @return added VHost
+     */
+    public VHost addVhost(String tenantDomain, VHost vHost) throws APIManagementException {
+        String uuid = UUID.randomUUID().toString();
+        vHost.setUuid(uuid);
+        if (vHost.getGatewayEnvrionments().isEmpty()) {
+            handleException("Failed to add VHost. At lease one gateway environment is required: " + uuid, null);
+        }
+
+        try (Connection conn = APIMgtDBUtil.getConnection()) {
+            conn.setAutoCommit(false);
+
+            try (PreparedStatement prepStmt = conn.prepareStatement(SQLConstants.INSERT_VHOST_SQL)){
+                prepStmt.setString(1, uuid);
+                prepStmt.setString(2, vHost.getName());
+                prepStmt.setString(3, tenantDomain);
+                prepStmt.setString(4, vHost.getUrl());
+                prepStmt.setString(5, vHost.getDescription());
+                prepStmt.executeUpdate();
+
+                ResultSet rs = prepStmt.getGeneratedKeys();
+                int id = -1;
+                if (rs.next()) {
+                    id = rs.getInt(1);
+                }
+                addVHostGatewayEnvMapping(conn, id, vHost.getGatewayEnvrionments());
+                conn.commit();
+            } catch (SQLException e) {
+                conn.rollback();
+                handleException("Failed to add VHost: " + uuid, e);
+            }
+        } catch (SQLException e) {
+            handleException("Failed to add VHost: " + uuid, e);
+        }
+        return vHost;
+    }
+
+    /**
+     * Add assgined gateway environments of the VHost
+     *
+     * @param connection connection
+     * @param id VHost databse ID
+     * @param gwEnvs assigned gateway environments
+     * @throws APIManagementException
+     */
+    private void addVHostGatewayEnvMapping(Connection connection, int id, List<String> gwEnvs) throws
+            APIManagementException {
+        try (PreparedStatement prepStmt = connection.prepareStatement(SQLConstants.INSERT_VHOST_GW_ENV_MAPPING_SQL)) {
+            for (String gwEnv : gwEnvs) {
+                prepStmt.setInt(1, id);
+                prepStmt.setString(2, gwEnv);
+                prepStmt.addBatch();
+            }
+            prepStmt.executeBatch();
+        } catch (SQLException e) {
+            handleException("Failed to add VHost gateway environment mapping for VHost ID : " + id, e);
+        }
+    }
+
+    /**
+     * Returns the VHost List for the TenantId.
+     *
+     * @param tenantDomain The tenant domain.
+     * @return List of VHosts.
+     */
+    public List<VHost> getAllVhosts(String tenantDomain) throws APIManagementException {
+        List<VHost> vHostList = new ArrayList<>();
+        try (Connection connection = APIMgtDBUtil.getConnection();
+             PreparedStatement prepStmt = connection.prepareStatement(SQLConstants.GET_VHOST_BY_TENANT_SQL)) {
+            prepStmt.setString(1, tenantDomain);
+            try (ResultSet rs = prepStmt.executeQuery()) {
+                while (rs.next()) {
+                    Integer id = rs.getInt("ID");
+                    String uuid = rs.getString("UUID");
+                    String name = rs.getString("NAME");
+                    String description = rs.getString("DESCRIPTION");
+                    String url = rs.getString("URL");
+
+                    VHost vhost = new VHost();
+                    vhost.setId(id);
+                    vhost.setUuid(uuid);
+                    vhost.setName(name);
+                    vhost.setDescription(description);
+                    vhost.setUrl(url);
+                    vhost.setGatewayEnvrionments(getVhostGatewayEnvironments(connection, id));
+                    vHostList.add(vhost);
+                }
+            }
+        } catch (SQLException e) {
+            handleException("Failed to get VHost of " + tenantDomain, e);
+        }
+        return vHostList;
+    }
+
+    /**
+     * Returns a list of gateway environments the VHost is assigned
+     *
+     * @param connection DB connection
+     * @param vhostId VHost id.
+     * @return List of gateway environments the VHost is assigned.
+     */
+    private List<String> getVhostGatewayEnvironments(Connection connection, Integer vhostId) throws APIManagementException {
+        List<String> gatewayEnvs = new ArrayList<>();
+        try (PreparedStatement prepStmt = connection.prepareStatement(SQLConstants.GET_VHOST_GW_ENV_BY_ID_SQL)) {
+            prepStmt.setInt(1, vhostId);
+            try (ResultSet rs = prepStmt.executeQuery()) {
+                while (rs.next()) {
+                    String gatewayEnv = rs.getString("DEPLOYMENT_NAME");
+                    gatewayEnvs.add(gatewayEnv);
+                }
+            }
+        } catch (SQLException e) {
+            handleException("Failed to get gateway environments list of VHost: " , e);
+        }
+        return gatewayEnvs;
+    }
+
+    public VHost updateVhost(VHost vHost) throws APIManagementException {
+        // TODO: (renuka) do we need to check for fields that can not be updated (ex: URL, gw-envs)
+        try (Connection connection = APIMgtDBUtil.getConnection()) {
+            try (PreparedStatement prepStmt = connection.prepareStatement(SQLConstants.UPDATE_VHOST_SQL)) {
+                connection.setAutoCommit(false);
+                prepStmt.setString(1, vHost.getDescription());
+                prepStmt.setString(2, vHost.getUuid());
+                prepStmt.executeUpdate();
+                connection.commit();
+            } catch (SQLException e) {
+                connection.rollback();
+                handleException("Failed to update label : ", e);
+            }
+        } catch (SQLException e) {
+            handleException("Failed to update label : ", e);
+        }
+        // TODO: (renuka) this VHost may content unedited fields.
+        return vHost;
+    }
+
+    /**
+     * Whether the VHost exists in the tenant domain with the given name
+     *
+     * @param tenantDomain tenant domain
+     * @param vHostName VHost name
+     * @return whether a VHost exist or not
+     * @throws APIManagementException if failed to find
+     */
+    public boolean isVhostNameExist(String tenantDomain, String vHostName) throws APIManagementException {
+        try (Connection connection = APIMgtDBUtil.getConnection();
+             PreparedStatement prepStmt = connection.prepareStatement(SQLConstants.GET_VHOST_NAME_COUNT_BY_TENANT_SQL)) {
+            prepStmt.setString(1, vHostName);
+            prepStmt.setString(2, tenantDomain);
+
+            int vhostCount = 0;
+            try (ResultSet rs = prepStmt.executeQuery()) {
+                if (rs.next()) {
+                    vhostCount = rs.getInt("VHOST_COUNT");
+                }
+            }
+            return vhostCount > 0;
+        } catch (SQLException e) {
+            handleException("Failed to get VHost count of " + tenantDomain, e);
+        }
+        return false;
+    }
+
+    /**
+     * Whether the VHost URL exists in all the tenant domains
+     *
+     * @param url VHost URL
+     * @return whether a VHost exist or not
+     * @throws APIManagementException if failed to find
+     */
+    public boolean isVhostUrlExist(String url) throws APIManagementException {
+        try (Connection connection = APIMgtDBUtil.getConnection();
+             PreparedStatement prepStmt = connection.prepareStatement(SQLConstants.GET_VHOST_COUNT_BY_URL_SQL)) {
+            prepStmt.setString(1, url);
+
+            int vhostCount = 0;
+            try (ResultSet rs = prepStmt.executeQuery()) {
+                if (rs.next()) {
+                    vhostCount = rs.getInt("VHOST_COUNT");
+                }
+            }
+            return vhostCount > 0;
+        } catch (SQLException e) {
+            handleException("Failed to get VHost count for URL " + url, e);
+        }
+        return false;
+    }
+
+    /**
+     * Whether the VHost is attached to an API revision
+     *
+     * @param vhostUUID VHost UUID
+     * @return whether the VHost is attached to an API revision or not
+     * @throws APIManagementException if failed to find
+     */
+    public boolean isVhostAttachedToApiRevision(String vhostUUID) throws APIManagementException {
+        try (Connection connection = APIMgtDBUtil.getConnection();
+             PreparedStatement prepStmt = connection.prepareStatement(SQLConstants.GET_VHOST_ATTACHED_COUNT_SQL)) {
+            prepStmt.setString(1, vhostUUID);
+            int deployedRevisionCount = 0;
+            try (ResultSet rs = prepStmt.executeQuery()) {
+                if (rs.next()) {
+                    deployedRevisionCount = rs.getInt("DEPLOYED_REVISION_COUNT");
+                }
+            }
+            return deployedRevisionCount > 0;
+        } catch (SQLException e) {
+            handleException("Failed to get attached VHost count for URL " + vhostUUID, e);
+        }
+        return false;
     }
 
     /**

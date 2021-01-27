@@ -34,15 +34,7 @@ import org.wso2.carbon.apimgt.api.APIManagementException;
 import org.wso2.carbon.apimgt.api.APIMgtResourceNotFoundException;
 import org.wso2.carbon.apimgt.api.ExceptionCodes;
 import org.wso2.carbon.apimgt.api.dto.KeyManagerConfigurationDTO;
-import org.wso2.carbon.apimgt.api.model.API;
-import org.wso2.carbon.apimgt.api.model.APICategory;
-import org.wso2.carbon.apimgt.api.model.Application;
-import org.wso2.carbon.apimgt.api.model.ConfigurationDto;
-import org.wso2.carbon.apimgt.api.model.KeyManagerConnectorConfiguration;
-import org.wso2.carbon.apimgt.api.model.Label;
-import org.wso2.carbon.apimgt.api.model.Monetization;
-import org.wso2.carbon.apimgt.api.model.MonetizationUsagePublishInfo;
-import org.wso2.carbon.apimgt.api.model.Workflow;
+import org.wso2.carbon.apimgt.api.model.*;
 import org.wso2.carbon.apimgt.api.model.botDataAPI.BotDetectionData;
 import org.wso2.carbon.apimgt.impl.alertmgt.AlertMgtConstants;
 import org.wso2.carbon.apimgt.impl.dao.ApiMgtDAO;
@@ -94,6 +86,36 @@ public class APIAdminImpl implements APIAdmin {
 
     public APIAdminImpl() {
         apiMgtDAO = ApiMgtDAO.getInstance();
+    }
+
+    @Override
+    public List<VHost> getAllVhosts(String tenantDomain) throws APIManagementException {
+        return apiMgtDAO.getAllVhosts(tenantDomain);
+    }
+
+    @Override
+    public VHost addVhost(String tenantDomain, VHost vhost) throws APIManagementException {
+        // TODO: (renuka) two DB calls to check validity? should allow to happen this and catch DB integrity exception?
+        if (apiMgtDAO.isVhostNameExist(tenantDomain, vhost.getName())) {
+            APIUtil.handleException("VHost with name " + vhost.getName() + " already exists");
+        }
+        if (apiMgtDAO.isVhostUrlExist(vhost.getUrl())) {
+            APIUtil.handleException("VHost with the URL " + vhost.getUrl() + " already exists");
+        }
+        return apiMgtDAO.addVhost(tenantDomain, vhost);
+    }
+
+    @Override
+    public void deleteVhost(String vhostUUID) throws APIManagementException {
+        if (apiMgtDAO.isVhostAttachedToApiRevision(vhostUUID)) {
+            APIUtil.handleException("Unable to delete the VHost. It is attached to APIs");
+        }
+        apiMgtDAO.deleteLabel(vhostUUID);
+    }
+
+    @Override
+    public VHost updateVhost(VHost vHost) throws APIManagementException {
+        return apiMgtDAO.updateVhost(vHost);
     }
 
     /**
@@ -850,8 +872,8 @@ public class APIAdminImpl implements APIAdmin {
         if (workflowConfig.isListTasks()) {
             workflow = apiMgtDAO.getworkflowReferenceByExternalWorkflowReferenceID(externelWorkflowRef,
                     status, tenantDomain);
-        } 
-        
+        }
+
         if (workflow == null) {
             String msg = "External workflow Reference: " + externelWorkflowRef + " was not found.";
             throw new APIMgtResourceNotFoundException(msg);

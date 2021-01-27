@@ -18,12 +18,7 @@
 package org.wso2.carbon.apimgt.api;
 
 import org.wso2.carbon.apimgt.api.dto.KeyManagerConfigurationDTO;
-import org.wso2.carbon.apimgt.api.model.APICategory;
-import org.wso2.carbon.apimgt.api.model.Application;
-import org.wso2.carbon.apimgt.api.model.Label;
-import org.wso2.carbon.apimgt.api.model.Monetization;
-import org.wso2.carbon.apimgt.api.model.MonetizationUsagePublishInfo;
-import org.wso2.carbon.apimgt.api.model.Workflow;
+import org.wso2.carbon.apimgt.api.model.*;
 import org.wso2.carbon.apimgt.api.model.botDataAPI.BotDetectionData;
 
 import java.io.InputStream;
@@ -34,6 +29,39 @@ import java.util.Map;
  * APIAdmin responsible for providing helper functionality
  */
 public interface APIAdmin  {
+    /**
+     * Returns VHosts of a given tenant
+     *
+     * @param tenantDomain tenant domain
+     * @return A List of VHosts related to the given tenant
+     */
+    List<VHost> getAllVhosts(String tenantDomain) throws APIManagementException;
+
+    /**
+     * Creates a new VHost for the tenant
+     *
+     * @param tenantDomain tenant domain
+     * @param vhost        content to add
+     * @throws APIManagementException if failed to add VHost
+     */
+    VHost addVhost(String tenantDomain, VHost vhost) throws APIManagementException;
+
+    /**
+     * Delete existing VHost
+     *
+     * @param vhostUUID VHost identifier
+     * @throws APIManagementException If failed to delete VHost
+     */
+    void deleteVhost(String vhostUUID) throws APIManagementException;
+
+    /**
+     * Updates the details of the given VHost
+     *
+     * @param vhost        content to update
+     * @throws APIManagementException if failed to update VHost
+     */
+    VHost updateVhost(VHost vhost) throws APIManagementException;
+
     /**
      * Returns labels of a given tenant
      *
