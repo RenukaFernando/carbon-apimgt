@@ -129,6 +129,9 @@ ExceptionCodes implements ErrorHandler {
     GATEWAY_ENVIRONMENT_NOT_FOUND(900504, "Invalid Gateway Environment", 400, "Gateway Environment with name '%s' not found"),
     NO_GATEWAY_ENVIRONMENTS_ADDED(900505, "No Gateway Environments Available", 400, "No gateway environments " +
             "available for the API : %s."),
+    VHOST_NOT_FOUND(900506, "Virtual Host not found", 404, "VHost cannot be found for the given reference id"),
+    EXISTING_VHOST_FOUND(900507, "Virtual Host is already exists", 400, "VHost is already exists"),
+    EXISTING_VHOST_API_REVISION_DEPLOYMENT_FOUND(900508, "Virtual Host is in use", 400, "VHost already attached to a deployed API revision"),
 
     // Workflow related codes
     WORKFLOW_EXCEPTION(900550, "Workflow error", 500,

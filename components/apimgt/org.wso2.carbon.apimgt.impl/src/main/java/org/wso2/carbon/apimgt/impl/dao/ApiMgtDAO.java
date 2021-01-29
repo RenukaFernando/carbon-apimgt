@@ -13668,28 +13668,6 @@ public class ApiMgtDAO {
     }
 
     /**
-     * Add assgined gateway environments of the VHost
-     *
-     * @param connection connection
-     * @param id VHost databse ID
-     * @param gwEnvs assigned gateway environments
-     * @throws APIManagementException
-     */
-    private void addVHostGatewayEnvMapping(Connection connection, int id, List<String> gwEnvs) throws
-            APIManagementException {
-        try (PreparedStatement prepStmt = connection.prepareStatement(SQLConstants.INSERT_VHOST_GW_ENV_MAPPING_SQL)) {
-            for (String gwEnv : gwEnvs) {
-                prepStmt.setInt(1, id);
-                prepStmt.setString(2, gwEnv);
-                prepStmt.addBatch();
-            }
-            prepStmt.executeBatch();
-        } catch (SQLException e) {
-            handleException("Failed to add VHost gateway environment mapping for VHost ID : " + id, e);
-        }
-    }
-
-    /**
      * Returns the VHost List for the TenantId.
      *
      * @param tenantDomain The tenant domain.
@@ -13725,6 +13703,39 @@ public class ApiMgtDAO {
     }
 
     /**
+     * Returns the VHost with the given UUID.
+     *
+     * @param uuid VHost UUID.
+     * @return VHost with the given UUID.
+     */
+    public VHost getVhost(String tenantDomain, String uuid) throws APIManagementException {
+        VHost vhost = new VHost();
+        try (Connection connection = APIMgtDBUtil.getConnection();
+             PreparedStatement prepStmt = connection.prepareStatement(SQLConstants.GET_VHOST_BY_TENANT_AND_UUID_SQL)) {
+            prepStmt.setString(1, tenantDomain);
+            prepStmt.setString(2, uuid);
+            try (ResultSet rs = prepStmt.executeQuery()) {
+                if (rs.next()) {
+                    Integer id = rs.getInt("ID");
+                    String name = rs.getString("NAME");
+                    String description = rs.getString("DESCRIPTION");
+                    String url = rs.getString("URL");
+
+                    vhost.setId(id);
+                    vhost.setUuid(uuid);
+                    vhost.setName(name);
+                    vhost.setDescription(description);
+                    vhost.setUrl(url);
+                    vhost.setGatewayEnvrionments(getVhostGatewayEnvironments(connection, id));
+                }
+            }
+        } catch (SQLException e) {
+            handleException("Failed to get VHost of " + tenantDomain, e);
+        }
+        return vhost;
+    }
+
+    /**
      * Returns a list of gateway environments the VHost is assigned
      *
      * @param connection DB connection
@@ -13747,24 +13758,72 @@ public class ApiMgtDAO {
         return gatewayEnvs;
     }
 
-    public VHost updateVhost(VHost vHost) throws APIManagementException {
-        // TODO: (renuka) do we need to check for fields that can not be updated (ex: URL, gw-envs)
+    /**
+     * Add assgined gateway environments of the VHost
+     *
+     * @param connection connection
+     * @param id VHost databse ID
+     * @param gwEnvs assigned gateway environments
+     * @throws APIManagementException if falied to add gateway environments
+     */
+    private void addVHostGatewayEnvMapping(Connection connection, int id, List<String> gwEnvs) throws
+            APIManagementException {
+        try (PreparedStatement prepStmt = connection.prepareStatement(SQLConstants.INSERT_VHOST_GW_ENV_MAPPING_SQL)) {
+            for (String gwEnv : gwEnvs) {
+                prepStmt.setInt(1, id);
+                prepStmt.setString(2, gwEnv);
+                prepStmt.addBatch();
+            }
+            prepStmt.executeBatch();
+        } catch (SQLException e) {
+            handleException("Failed to add VHost gateway environment mapping for VHost ID : " + id, e);
+        }
+    }
+
+    /**
+     * Update VHost name and description
+     *
+     * @param vhost VHost to be updated
+     * @throws APIManagementException if failed to updated VHost
+     */
+    public void updateVhost(VHost vhost) throws APIManagementException {
         try (Connection connection = APIMgtDBUtil.getConnection()) {
             try (PreparedStatement prepStmt = connection.prepareStatement(SQLConstants.UPDATE_VHOST_SQL)) {
                 connection.setAutoCommit(false);
-                prepStmt.setString(1, vHost.getDescription());
-                prepStmt.setString(2, vHost.getUuid());
+                prepStmt.setString(1, vhost.getName());
+                prepStmt.setString(2, vhost.getDescription());
+                prepStmt.setInt(3, vhost.getId());
                 prepStmt.executeUpdate();
                 connection.commit();
             } catch (SQLException e) {
                 connection.rollback();
-                handleException("Failed to update label : ", e);
+                handleException("Failed to update VHost : ", e);
             }
         } catch (SQLException e) {
-            handleException("Failed to update label : ", e);
+            handleException("Failed to update VHost : ", e);
         }
-        // TODO: (renuka) this VHost may content unedited fields.
-        return vHost;
+    }
+
+    /**
+     * Delete a VHost
+     *
+     * @param uuid UUID of the VHost
+     * @throws APIManagementException if failed to delete VHost
+     */
+    public void deleteVhost(String uuid) throws APIManagementException {
+        try (Connection connection = APIMgtDBUtil.getConnection()) {
+            try (PreparedStatement prepStmt = connection.prepareStatement(SQLConstants.DELETE_VHOST_SQL)) {
+                connection.setAutoCommit(false);
+                prepStmt.setString(1, uuid);
+                prepStmt.executeUpdate();
+                connection.commit();
+            } catch (SQLException e) {
+                connection.rollback();
+                handleException("Failed to delete VHost : ", e);
+            }
+        } catch (SQLException e) {
+            handleException("Failed to delete VHost : ", e);
+        }
     }
 
     /**
@@ -13795,7 +13854,7 @@ public class ApiMgtDAO {
     }
 
     /**
-     * Whether the VHost URL exists in all the tenant domains
+     * Whether the VHost URL exists across all the tenant domains
      *
      * @param url VHost URL
      * @return whether a VHost exist or not
@@ -13822,14 +13881,16 @@ public class ApiMgtDAO {
     /**
      * Whether the VHost is attached to an API revision
      *
+     * @param tenantDomain Tenant domain
      * @param vhostUUID VHost UUID
      * @return whether the VHost is attached to an API revision or not
      * @throws APIManagementException if failed to find
      */
-    public boolean isVhostAttachedToApiRevision(String vhostUUID) throws APIManagementException {
+    public boolean isVhostAttachedToApiRevision(String tenantDomain, String vhostUUID) throws APIManagementException {
         try (Connection connection = APIMgtDBUtil.getConnection();
              PreparedStatement prepStmt = connection.prepareStatement(SQLConstants.GET_VHOST_ATTACHED_COUNT_SQL)) {
             prepStmt.setString(1, vhostUUID);
+            prepStmt.setString(2, tenantDomain);
             int deployedRevisionCount = 0;
             try (ResultSet rs = prepStmt.executeQuery()) {
                 if (rs.next()) {
@@ -15911,9 +15972,30 @@ public class ApiMgtDAO {
                     }
                 }
 
+                Map<String, URITemplate> uriTemplateMap = new HashMap<>();
+                for (URITemplate urlMapping : urlMappingList) {
+                    if (urlMapping.getScope() != null) {
+                        URITemplate urlMappingNew = urlMapping;
+                        URITemplate urlMappingExisting =  uriTemplateMap.get(urlMapping.getUriTemplate()
+                                + urlMapping.getHTTPVerb());
+                        if (urlMappingExisting != null && urlMappingExisting.getScopes() != null) {
+                            if (!urlMappingExisting.getScopes().contains(urlMapping.getScope())) {
+                                urlMappingExisting.setScopes(urlMapping.getScope());
+                                uriTemplateMap.put(urlMappingExisting.getUriTemplate() + urlMappingExisting.getHTTPVerb(),
+                                        urlMappingExisting);
+                            }
+                        } else {
+                            urlMappingNew.setScopes(urlMapping.getScope());
+                            uriTemplateMap.put(urlMappingNew.getUriTemplate() + urlMappingNew.getHTTPVerb(), urlMappingNew);
+                        }
+                    } else {
+                        uriTemplateMap.put(urlMapping.getUriTemplate() + urlMapping.getHTTPVerb(), urlMapping);
+                    }
+                }
+
                 PreparedStatement insertURLMappingsStatement = connection
                         .prepareStatement(SQLConstants.APIRevisionSqlConstants.INSERT_URL_MAPPINGS);
-                for (URITemplate urlMapping : urlMappingList) {
+                for (URITemplate urlMapping : uriTemplateMap.values()) {
                     insertURLMappingsStatement.setInt(1, apiId);
                     insertURLMappingsStatement.setString(2, urlMapping.getHTTPVerb());
                     insertURLMappingsStatement.setString(3, urlMapping.getAuthType());
@@ -15931,8 +16013,8 @@ public class ApiMgtDAO {
                         .prepareStatement(SQLConstants.APIRevisionSqlConstants.INSERT_SCOPE_RESOURCE_MAPPING);
                 PreparedStatement insertProductResourceMappingStatement = connection
                         .prepareStatement(SQLConstants.APIRevisionSqlConstants.INSERT_PRODUCT_RESOURCE_MAPPING);
-                for (URITemplate urlMapping : urlMappingList) {
-                    if (urlMapping.getScope() != null) {
+                for (URITemplate urlMapping : uriTemplateMap.values()) {
+                    if (urlMapping.getScopes() != null) {
                         getRevisionedURLMappingsStatement.setInt(1, apiId);
                         getRevisionedURLMappingsStatement.setString(2, apiRevision.getRevisionUUID());
                         getRevisionedURLMappingsStatement.setString(3, urlMapping.getHTTPVerb());
@@ -15941,10 +16023,12 @@ public class ApiMgtDAO {
                         getRevisionedURLMappingsStatement.setString(6, urlMapping.getThrottlingTier());
                         try (ResultSet rs = getRevisionedURLMappingsStatement.executeQuery()) {
                             while (rs.next()) {
-                                insertScopeResourceMappingStatement.setString(1, urlMapping.getScope().getKey());
-                                insertScopeResourceMappingStatement.setInt(2, rs.getInt(1));
-                                insertScopeResourceMappingStatement.setInt(3, tenantId);
-                                insertScopeResourceMappingStatement.addBatch();
+                                for (Scope scope: urlMapping.getScopes()) {
+                                    insertScopeResourceMappingStatement.setString(1, scope.getKey());
+                                    insertScopeResourceMappingStatement.setInt(2, rs.getInt(1));
+                                    insertScopeResourceMappingStatement.setInt(3, tenantId);
+                                    insertScopeResourceMappingStatement.addBatch();
+                                }
                             }
                         }
                     }

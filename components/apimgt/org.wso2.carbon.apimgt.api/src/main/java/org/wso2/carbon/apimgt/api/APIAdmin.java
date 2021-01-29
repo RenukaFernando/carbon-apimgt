@@ -50,17 +50,19 @@ public interface APIAdmin  {
      * Delete existing VHost
      *
      * @param vhostUUID VHost identifier
+     * @param tenantDomain tenant domain
      * @throws APIManagementException If failed to delete VHost
      */
-    void deleteVhost(String vhostUUID) throws APIManagementException;
+    void deleteVhost(String tenantDomain, String vhostUUID) throws APIManagementException;
 
     /**
      * Updates the details of the given VHost
      *
      * @param vhost        content to update
+     * @param tenantDomain tenant domain
      * @throws APIManagementException if failed to update VHost
      */
-    VHost updateVhost(VHost vhost) throws APIManagementException;
+    VHost updateVhost(String tenantDomain, VHost vhost) throws APIManagementException;
 
     /**
      * Returns labels of a given tenant

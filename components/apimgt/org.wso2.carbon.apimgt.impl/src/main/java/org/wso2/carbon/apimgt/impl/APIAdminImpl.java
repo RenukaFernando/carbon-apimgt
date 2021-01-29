@@ -93,29 +93,52 @@ public class APIAdminImpl implements APIAdmin {
         return apiMgtDAO.getAllVhosts(tenantDomain);
     }
 
+    private VHost getVhost(String tenantDomain, String vhostUUID) throws APIManagementException {
+        VHost vhost = apiMgtDAO.getVhost(tenantDomain, vhostUUID);
+        if (vhost.getId() == 0) {
+            String errorMessage = "Failed to retrieve VHost uuid";
+            throw new APIManagementException(errorMessage, ExceptionCodes.from(ExceptionCodes.VHOST_NOT_FOUND));
+        }
+        return vhost;
+    }
+
     @Override
     public VHost addVhost(String tenantDomain, VHost vhost) throws APIManagementException {
         // TODO: (renuka) two DB calls to check validity? should allow to happen this and catch DB integrity exception?
         if (apiMgtDAO.isVhostNameExist(tenantDomain, vhost.getName())) {
-            APIUtil.handleException("VHost with name " + vhost.getName() + " already exists");
+            String errorMessage = String.format("Failed to add VHost. A VHost named %s already exists", vhost.getName());
+            throw new APIManagementException(errorMessage,
+                    ExceptionCodes.from(ExceptionCodes.EXISTING_VHOST_FOUND));
         }
         if (apiMgtDAO.isVhostUrlExist(vhost.getUrl())) {
-            APIUtil.handleException("VHost with the URL " + vhost.getUrl() + " already exists");
+            String errorMessage = String.format("Failed to add VHost. VHost URL %s is in not available", vhost.getUrl());
+            throw new APIManagementException(errorMessage,
+                    ExceptionCodes.from(ExceptionCodes.EXISTING_VHOST_FOUND));
         }
         return apiMgtDAO.addVhost(tenantDomain, vhost);
     }
 
     @Override
-    public void deleteVhost(String vhostUUID) throws APIManagementException {
-        if (apiMgtDAO.isVhostAttachedToApiRevision(vhostUUID)) {
-            APIUtil.handleException("Unable to delete the VHost. It is attached to APIs");
+    public void deleteVhost(String tenantDomain, String vhostUUID) throws APIManagementException {
+        // check if the VHost exists in the tenant domain with given UUID
+        getVhost(tenantDomain, vhostUUID);
+        // check if the VHost is attached to an API Revision
+        if (apiMgtDAO.isVhostAttachedToApiRevision(tenantDomain, vhostUUID)) {
+            String errorMessage = "Unable to delete the VHost. It is attached to APIs";
+            throw new APIManagementException(errorMessage,
+                    ExceptionCodes.from(ExceptionCodes.EXISTING_VHOST_API_REVISION_DEPLOYMENT_FOUND));
         }
-        apiMgtDAO.deleteLabel(vhostUUID);
+        apiMgtDAO.deleteVhost(vhostUUID);
     }
 
     @Override
-    public VHost updateVhost(VHost vHost) throws APIManagementException {
-        return apiMgtDAO.updateVhost(vHost);
+    public VHost updateVhost(String tenantDomain, VHost vhost) throws APIManagementException {
+        // TODO: (renuka) do we need to check for fields that can not be updated (ex: URL, gw-envs)
+        VHost currentVhost = getVhost(tenantDomain, vhost.getUuid());
+        currentVhost.setName(vhost.getName());
+        currentVhost.setDescription(vhost.getDescription());
+        apiMgtDAO.updateVhost(currentVhost);
+        return currentVhost;
     }
 
     /**

@@ -81,7 +81,7 @@ public class VhostsApiServiceImpl implements VhostsApiService {
             VHost vHost = VHostMappingUtil.fromVHostDTOtoVHost(body);
             VHostDTO vHostDTO = VHostMappingUtil.fromVHostToVHostDTO(apiAdmin.addVhost(tenantDomain, vHost));
             URI location = new URI(RestApiConstants.RESOURCE_PATH_VHost + "/" + vHostDTO.getId());
-            return Response.created(location).entity(body).build();
+            return Response.created(location).entity(vHostDTO).build();
         } catch (APIManagementException | URISyntaxException e) {
             String errorMessage = "Error while adding new a VHost to API : " + body.getName() + "-" + e.getMessage();
             RestApiUtil.handleInternalServerError(errorMessage, e, log);
@@ -92,7 +92,8 @@ public class VhostsApiServiceImpl implements VhostsApiService {
     public Response vhostsVhostIdDelete(String vhostId, MessageContext messageContext) {
         try {
             APIAdmin apiAdmin = new APIAdminImpl();
-            apiAdmin.deleteVhost(vhostId);
+            String tenantDomain = RestApiCommonUtil.getLoggedInUserTenantDomain();
+            apiAdmin.deleteVhost(tenantDomain, vhostId);
             return Response.ok().build();
         } catch (APIManagementException e) {
             String errorMessage = "Error while deleting VHost : " + vhostId;
@@ -106,7 +107,8 @@ public class VhostsApiServiceImpl implements VhostsApiService {
             APIAdmin apiAdmin = new APIAdminImpl();
             body.setId(vhostId);
             VHost vHost = VHostMappingUtil.fromVHostDTOtoVHost(body);
-            VHostDTO vHostDTO = VHostMappingUtil.fromVHostToVHostDTO(apiAdmin.updateVhost(vHost));
+            String tenantDomain = RestApiCommonUtil.getLoggedInUserTenantDomain();
+            VHostDTO vHostDTO = VHostMappingUtil.fromVHostToVHostDTO(apiAdmin.updateVhost(tenantDomain, vHost));
             URI location = new URI(RestApiConstants.RESOURCE_PATH_VHost + "/" + vHostDTO.getId());
             return Response.ok(location).entity(vHostDTO).build();
         } catch (APIManagementException | URISyntaxException e) {
