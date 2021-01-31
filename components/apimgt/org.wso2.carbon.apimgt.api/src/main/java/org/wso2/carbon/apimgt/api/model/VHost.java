@@ -11,7 +11,7 @@ public class VHost {
     private String name;
     private String description;
     private String url;
-    private List<String> gatewayEnvrionments;
+    private List<String> gatewayEnvironments;
 
     public VHost() {
     }
@@ -56,11 +56,11 @@ public class VHost {
         this.url = url;
     }
 
-    public List<String> getGatewayEnvrionments() {
-        return gatewayEnvrionments;
+    public List<String> getGatewayEnvironments() {
+        return gatewayEnvironments;
     }
 
-    public void setGatewayEnvrionments(List<String> gatewayEnvrionments) {
-        this.gatewayEnvrionments = gatewayEnvrionments;
+    public void setGatewayEnvironments(List<String> gatewayEnvironments) {
+        this.gatewayEnvironments = gatewayEnvironments;
     }
 }

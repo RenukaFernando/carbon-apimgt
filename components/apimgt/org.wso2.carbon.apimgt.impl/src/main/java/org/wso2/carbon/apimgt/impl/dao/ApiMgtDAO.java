@@ -86,7 +86,6 @@ import org.wso2.carbon.apimgt.api.model.policy.QueryParameterCondition;
 import org.wso2.carbon.apimgt.api.model.policy.QuotaPolicy;
 import org.wso2.carbon.apimgt.api.model.policy.RequestCountLimit;
 import org.wso2.carbon.apimgt.api.model.policy.SubscriptionPolicy;
-import org.wso2.carbon.apimgt.api.model.subscription.URLMapping;
 import org.wso2.carbon.apimgt.impl.APIConstants;
 import org.wso2.carbon.apimgt.impl.APIManagerConfiguration;
 import org.wso2.carbon.apimgt.impl.ThrottlePolicyConstants;
@@ -117,7 +116,6 @@ import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.DBUtils;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
-import sun.security.krb5.internal.APRep;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -13635,14 +13633,14 @@ public class ApiMgtDAO {
     public VHost addVhost(String tenantDomain, VHost vHost) throws APIManagementException {
         String uuid = UUID.randomUUID().toString();
         vHost.setUuid(uuid);
-        if (vHost.getGatewayEnvrionments().isEmpty()) {
+        if (vHost.getGatewayEnvironments().isEmpty()) {
             handleException("Failed to add VHost. At lease one gateway environment is required: " + uuid, null);
         }
 
         try (Connection conn = APIMgtDBUtil.getConnection()) {
             conn.setAutoCommit(false);
 
-            try (PreparedStatement prepStmt = conn.prepareStatement(SQLConstants.INSERT_VHOST_SQL)){
+            try (PreparedStatement prepStmt = conn.prepareStatement(SQLConstants.INSERT_VHOST_SQL, new String[]{"ID"})){
                 prepStmt.setString(1, uuid);
                 prepStmt.setString(2, vHost.getName());
                 prepStmt.setString(3, tenantDomain);
@@ -13655,7 +13653,7 @@ public class ApiMgtDAO {
                 if (rs.next()) {
                     id = rs.getInt(1);
                 }
-                addVHostGatewayEnvMapping(conn, id, vHost.getGatewayEnvrionments());
+                addVHostGatewayEnvMapping(conn, id, vHost.getGatewayEnvironments());
                 conn.commit();
             } catch (SQLException e) {
                 conn.rollback();
@@ -13692,7 +13690,7 @@ public class ApiMgtDAO {
                     vhost.setName(name);
                     vhost.setDescription(description);
                     vhost.setUrl(url);
-                    vhost.setGatewayEnvrionments(getVhostGatewayEnvironments(connection, id));
+                    vhost.setGatewayEnvironments(getVhostGatewayEnvironments(connection, id));
                     vHostList.add(vhost);
                 }
             }
@@ -13726,7 +13724,7 @@ public class ApiMgtDAO {
                     vhost.setName(name);
                     vhost.setDescription(description);
                     vhost.setUrl(url);
-                    vhost.setGatewayEnvrionments(getVhostGatewayEnvironments(connection, id));
+                    vhost.setGatewayEnvironments(getVhostGatewayEnvironments(connection, id));
                 }
             }
         } catch (SQLException e) {
@@ -13784,9 +13782,10 @@ public class ApiMgtDAO {
      * Update VHost name and description
      *
      * @param vhost VHost to be updated
+     * @return Updated VHost
      * @throws APIManagementException if failed to updated VHost
      */
-    public void updateVhost(VHost vhost) throws APIManagementException {
+    public VHost updateVhost(VHost vhost) throws APIManagementException {
         try (Connection connection = APIMgtDBUtil.getConnection()) {
             try (PreparedStatement prepStmt = connection.prepareStatement(SQLConstants.UPDATE_VHOST_SQL)) {
                 connection.setAutoCommit(false);
@@ -13802,6 +13801,7 @@ public class ApiMgtDAO {
         } catch (SQLException e) {
             handleException("Failed to update VHost : ", e);
         }
+        return vhost;
     }
 
     /**

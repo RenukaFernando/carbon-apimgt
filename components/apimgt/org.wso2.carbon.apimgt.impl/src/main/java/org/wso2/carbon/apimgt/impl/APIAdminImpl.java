@@ -93,11 +93,12 @@ public class APIAdminImpl implements APIAdmin {
         return apiMgtDAO.getAllVhosts(tenantDomain);
     }
 
-    private VHost getVhost(String tenantDomain, String vhostUUID) throws APIManagementException {
+    @Override
+    public VHost getVhost(String tenantDomain, String vhostUUID) throws APIManagementException {
         VHost vhost = apiMgtDAO.getVhost(tenantDomain, vhostUUID);
-        if (vhost.getId() == 0) {
-            String errorMessage = "Failed to retrieve VHost uuid";
-            throw new APIManagementException(errorMessage, ExceptionCodes.from(ExceptionCodes.VHOST_NOT_FOUND));
+        if (vhost.getId() == null) {
+            String errorMessage = String.format("Failed to retrieve VHost with UUID %s. VHost not found", vhost.getId());
+            throw new APIMgtResourceNotFoundException(errorMessage, ExceptionCodes.from(ExceptionCodes.VHOST_NOT_FOUND));
         }
         return vhost;
     }
@@ -108,12 +109,13 @@ public class APIAdminImpl implements APIAdmin {
         if (apiMgtDAO.isVhostNameExist(tenantDomain, vhost.getName())) {
             String errorMessage = String.format("Failed to add VHost. A VHost named %s already exists", vhost.getName());
             throw new APIManagementException(errorMessage,
-                    ExceptionCodes.from(ExceptionCodes.EXISTING_VHOST_FOUND));
+                    ExceptionCodes.from(ExceptionCodes.EXISTING_VHOST_FOUND,
+                            String.format("name '%s'", vhost.getName())));
         }
         if (apiMgtDAO.isVhostUrlExist(vhost.getUrl())) {
             String errorMessage = String.format("Failed to add VHost. VHost URL %s is in not available", vhost.getUrl());
-            throw new APIManagementException(errorMessage,
-                    ExceptionCodes.from(ExceptionCodes.EXISTING_VHOST_FOUND));
+            throw new APIManagementException(errorMessage, ExceptionCodes.from(ExceptionCodes.EXISTING_VHOST_FOUND,
+                    String.format("VHost URL '%s", vhost.getUrl())));
         }
         return apiMgtDAO.addVhost(tenantDomain, vhost);
     }
@@ -133,12 +135,7 @@ public class APIAdminImpl implements APIAdmin {
 
     @Override
     public VHost updateVhost(String tenantDomain, VHost vhost) throws APIManagementException {
-        // TODO: (renuka) do we need to check for fields that can not be updated (ex: URL, gw-envs)
-        VHost currentVhost = getVhost(tenantDomain, vhost.getUuid());
-        currentVhost.setName(vhost.getName());
-        currentVhost.setDescription(vhost.getDescription());
-        apiMgtDAO.updateVhost(currentVhost);
-        return currentVhost;
+        return apiMgtDAO.updateVhost(vhost);
     }
 
     /**

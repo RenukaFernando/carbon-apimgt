@@ -38,10 +38,20 @@ public interface APIAdmin  {
     List<VHost> getAllVhosts(String tenantDomain) throws APIManagementException;
 
     /**
+     * Returns VHosts of a given tenant and UUID
+     *
+     * @param tenantDomain tenant domain
+     * @param uuid UUID of the VHost
+     * @return VHosts of a given tenant and UUID
+     */
+    VHost getVhost(String tenantDomain, String uuid) throws APIManagementException;
+
+    /**
      * Creates a new VHost for the tenant
      *
      * @param tenantDomain tenant domain
      * @param vhost        content to add
+     * @return Added Vhost
      * @throws APIManagementException if failed to add VHost
      */
     VHost addVhost(String tenantDomain, VHost vhost) throws APIManagementException;
@@ -60,6 +70,7 @@ public interface APIAdmin  {
      *
      * @param vhost        content to update
      * @param tenantDomain tenant domain
+     * @return Update VHost
      * @throws APIManagementException if failed to update VHost
      */
     VHost updateVhost(String tenantDomain, VHost vhost) throws APIManagementException;

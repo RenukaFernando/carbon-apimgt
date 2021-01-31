@@ -22,15 +22,11 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.cxf.jaxrs.ext.MessageContext;
 import org.wso2.carbon.apimgt.api.APIAdmin;
 import org.wso2.carbon.apimgt.api.APIManagementException;
-import org.wso2.carbon.apimgt.api.model.Label;
 import org.wso2.carbon.apimgt.api.model.VHost;
 import org.wso2.carbon.apimgt.impl.APIAdminImpl;
 import org.wso2.carbon.apimgt.rest.api.admin.v1.VhostsApiService;
-import org.wso2.carbon.apimgt.rest.api.admin.v1.dto.ErrorDTO;
-import org.wso2.carbon.apimgt.rest.api.admin.v1.dto.LabelDTO;
 import org.wso2.carbon.apimgt.rest.api.admin.v1.dto.VHostDTO;
 import org.wso2.carbon.apimgt.rest.api.admin.v1.dto.VHostListDTO;
-import org.wso2.carbon.apimgt.rest.api.admin.v1.utils.mappings.LabelMappingUtil;
 import org.wso2.carbon.apimgt.rest.api.admin.v1.utils.mappings.VHostMappingUtil;
 import org.wso2.carbon.apimgt.rest.api.common.RestApiCommonUtil;
 import org.wso2.carbon.apimgt.rest.api.common.RestApiConstants;
@@ -50,21 +46,16 @@ public class VhostsApiServiceImpl implements VhostsApiService {
      * Retrieve VHosts in the tenant domain of the user
      *
      * @param messageContext message context
-     * @return VHosts in the tenant domain of the user
+     * @return response with VHosts in the tenant domain of the user
+     * @throws APIManagementException if failed to get VHosts in the user's domain
      */
     @Override
-    public Response vhostsGet(MessageContext messageContext) {
-        try {
-            APIAdmin apiAdmin = new APIAdminImpl();
-            String tenantDomain = RestApiCommonUtil.getLoggedInUserTenantDomain();
-            List<VHost> vHostList = apiAdmin.getAllVhosts(tenantDomain);
-            VHostListDTO vHostListDTO = VHostMappingUtil.fromVHostListToVHostListDTO(vHostList);
-            return Response.ok().entity(vHostListDTO).build();
-        } catch (APIManagementException e) {
-            String errorMessage = "Error while retrieving VHosts";
-            RestApiUtil.handleInternalServerError(errorMessage, e, log);
-        }
-        return null;
+    public Response vhostsGet(MessageContext messageContext) throws APIManagementException {
+        APIAdmin apiAdmin = new APIAdminImpl();
+        String tenantDomain = RestApiCommonUtil.getLoggedInUserTenantDomain();
+        List<VHost> vHostList = apiAdmin.getAllVhosts(tenantDomain);
+        VHostListDTO vHostListDTO = VHostMappingUtil.fromVHostListToVHostListDTO(vHostList);
+        return Response.ok().entity(vHostListDTO).build();
     }
 
     /**
@@ -72,9 +63,10 @@ public class VhostsApiServiceImpl implements VhostsApiService {
      *
      * @param body           request body as VHostDTO
      * @param messageContext message context
-     * @return created VHostDTO
+     * @return response for created VHostDTO
+     * @throws APIManagementException if failed to add the VHost
      */
-    public Response vhostsPost(VHostDTO body, MessageContext messageContext) {
+    public Response vhostsPost(VHostDTO body, MessageContext messageContext) throws APIManagementException {
         try {
             APIAdmin apiAdmin = new APIAdminImpl();
             String tenantDomain = RestApiCommonUtil.getLoggedInUserTenantDomain();
@@ -82,36 +74,60 @@ public class VhostsApiServiceImpl implements VhostsApiService {
             VHostDTO vHostDTO = VHostMappingUtil.fromVHostToVHostDTO(apiAdmin.addVhost(tenantDomain, vHost));
             URI location = new URI(RestApiConstants.RESOURCE_PATH_VHost + "/" + vHostDTO.getId());
             return Response.created(location).entity(vHostDTO).build();
-        } catch (APIManagementException | URISyntaxException e) {
+        } catch (URISyntaxException e) {
             String errorMessage = "Error while adding new a VHost to API : " + body.getName() + "-" + e.getMessage();
             RestApiUtil.handleInternalServerError(errorMessage, e, log);
         }
         return null;
     }
 
-    public Response vhostsVhostIdDelete(String vhostId, MessageContext messageContext) {
-        try {
-            APIAdmin apiAdmin = new APIAdminImpl();
-            String tenantDomain = RestApiCommonUtil.getLoggedInUserTenantDomain();
-            apiAdmin.deleteVhost(tenantDomain, vhostId);
-            return Response.ok().build();
-        } catch (APIManagementException e) {
-            String errorMessage = "Error while deleting VHost : " + vhostId;
-            RestApiUtil.handleInternalServerError(errorMessage, e, log);
-        }
-        return null;
+    /**
+     * Delete a VHost
+     *
+     * @param vhostId        Id of the VHost
+     * @param messageContext message context
+     * @return response of VHost deletion
+     * @throws APIManagementException if failed to delete the VHost
+     */
+    public Response vhostsVhostIdDelete(String vhostId, MessageContext messageContext) throws APIManagementException {
+        APIAdmin apiAdmin = new APIAdminImpl();
+        String tenantDomain = RestApiCommonUtil.getLoggedInUserTenantDomain();
+        apiAdmin.deleteVhost(tenantDomain, vhostId);
+        return Response.ok().build();
     }
 
-    public Response vhostsVhostIdPut(String vhostId, VHostDTO body, MessageContext messageContext) {
+    /**
+     * Update a Vhost
+     * @param vhostId id of the VHost
+     * @param body request body of the VHost
+     * @param messageContext message context
+     * @return response of updated VHost
+     * @throws APIManagementException if failed to update VHost
+     */
+    public Response vhostsVhostIdPut(String vhostId, VHostDTO body, MessageContext messageContext) throws APIManagementException {
         try {
             APIAdmin apiAdmin = new APIAdminImpl();
             body.setId(vhostId);
             VHost vHost = VHostMappingUtil.fromVHostDTOtoVHost(body);
             String tenantDomain = RestApiCommonUtil.getLoggedInUserTenantDomain();
+
+            VHost currentVhost = apiAdmin.getVhost(tenantDomain, vHost.getUuid());
+            vHost.setId(currentVhost.getId());
+            if (!currentVhost.getName().equals(vHost.getName())) {
+                RestApiUtil.handleBadRequest("Virtual Host name can not be changed", log);
+            }
+            if (!currentVhost.getUrl().equals(vHost.getUrl())) {
+                RestApiUtil.handleBadRequest("Virtual Host URL can not be changed", log);
+            }
+            if (currentVhost.getGatewayEnvironments().size() > vHost.getGatewayEnvironments().size() ||
+                    !vHost.getGatewayEnvironments().containsAll(currentVhost.getGatewayEnvironments())) {
+                RestApiUtil.handleBadRequest("Assigned gateway environments of Virtual Host can not be removed", log);
+            }
+
             VHostDTO vHostDTO = VHostMappingUtil.fromVHostToVHostDTO(apiAdmin.updateVhost(tenantDomain, vHost));
             URI location = new URI(RestApiConstants.RESOURCE_PATH_VHost + "/" + vHostDTO.getId());
             return Response.ok(location).entity(vHostDTO).build();
-        } catch (APIManagementException | URISyntaxException e) {
+        } catch (URISyntaxException e) {
             String errorMessage = "Error while updating VHost : " + vhostId;
             RestApiUtil.handleInternalServerError(errorMessage, e, log);
         }

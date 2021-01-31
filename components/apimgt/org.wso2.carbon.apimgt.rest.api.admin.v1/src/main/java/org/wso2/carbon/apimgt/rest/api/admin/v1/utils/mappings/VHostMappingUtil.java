@@ -17,9 +17,7 @@
 
 package org.wso2.carbon.apimgt.rest.api.admin.v1.utils.mappings;
 
-import org.wso2.carbon.apimgt.api.model.Label;
 import org.wso2.carbon.apimgt.api.model.VHost;
-import org.wso2.carbon.apimgt.rest.api.admin.v1.dto.LabelListDTO;
 import org.wso2.carbon.apimgt.rest.api.admin.v1.dto.VHostDTO;
 import org.wso2.carbon.apimgt.rest.api.admin.v1.dto.VHostListDTO;
 
@@ -60,7 +58,7 @@ public class VHostMappingUtil {
         vHostDTO.setName(vHost.getName());
         vHostDTO.setUrl(vHost.getUrl());
         vHostDTO.setDescription(vHost.getDescription());
-        vHostDTO.setGatewayEnvironments(vHost.getGatewayEnvrionments());
+        vHostDTO.setGatewayEnvironments(vHost.getGatewayEnvironments());
         return vHostDTO;
     }
 
@@ -76,7 +74,7 @@ public class VHostMappingUtil {
         vHost.setName(vhostDTO.getName());
         vHost.setUrl(vhostDTO.getUrl());
         vHost.setDescription(vhostDTO.getDescription());
-        vHost.setGatewayEnvrionments(vhostDTO.getGatewayEnvironments());
+        vHost.setGatewayEnvironments(vhostDTO.getGatewayEnvironments());
         return vHost;
     }
 }
