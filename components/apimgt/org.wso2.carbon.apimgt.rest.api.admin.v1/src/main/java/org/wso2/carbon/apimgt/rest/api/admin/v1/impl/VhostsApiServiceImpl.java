@@ -35,6 +35,7 @@ import org.wso2.carbon.apimgt.rest.api.util.utils.RestApiUtil;
 import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -98,8 +99,9 @@ public class VhostsApiServiceImpl implements VhostsApiService {
 
     /**
      * Update a Vhost
-     * @param vhostId id of the VHost
-     * @param body request body of the VHost
+     *
+     * @param vhostId        id of the VHost
+     * @param body           request body of the VHost
      * @param messageContext message context
      * @return response of updated VHost
      * @throws APIManagementException if failed to update VHost
@@ -119,12 +121,15 @@ public class VhostsApiServiceImpl implements VhostsApiService {
             if (!currentVhost.getUrl().equals(vHost.getUrl())) {
                 RestApiUtil.handleBadRequest("Virtual Host URL can not be changed", log);
             }
-            if (currentVhost.getGatewayEnvironments().size() > vHost.getGatewayEnvironments().size() ||
-                    !vHost.getGatewayEnvironments().containsAll(currentVhost.getGatewayEnvironments())) {
+            if (!vHost.getGatewayEnvironments().containsAll(currentVhost.getGatewayEnvironments())) {
                 RestApiUtil.handleBadRequest("Assigned gateway environments of Virtual Host can not be removed", log);
             }
 
-            VHostDTO vHostDTO = VHostMappingUtil.fromVHostToVHostDTO(apiAdmin.updateVhost(tenantDomain, vHost));
+            List<String> newGatewayEnvs = new ArrayList<>(vHost.getGatewayEnvironments());
+            newGatewayEnvs.removeAll(currentVhost.getGatewayEnvironments());
+            VHostDTO vHostDTO = VHostMappingUtil.fromVHostToVHostDTO(
+                    apiAdmin.updateVhost(tenantDomain, vHost, newGatewayEnvs)
+            );
             URI location = new URI(RestApiConstants.RESOURCE_PATH_VHost + "/" + vHostDTO.getId());
             return Response.ok(location).entity(vHostDTO).build();
         } catch (URISyntaxException e) {

@@ -73,7 +73,7 @@ public interface APIAdmin  {
      * @return Update VHost
      * @throws APIManagementException if failed to update VHost
      */
-    VHost updateVhost(String tenantDomain, VHost vhost) throws APIManagementException;
+    VHost updateVhost(String tenantDomain, VHost vhost, List<String> newGatewayEnvs) throws APIManagementException;
 
     /**
      * Returns labels of a given tenant

@@ -134,8 +134,8 @@ public class APIAdminImpl implements APIAdmin {
     }
 
     @Override
-    public VHost updateVhost(String tenantDomain, VHost vhost) throws APIManagementException {
-        return apiMgtDAO.updateVhost(vhost);
+    public VHost updateVhost(String tenantDomain, VHost vhost, List<String> newGatewayEnvs) throws APIManagementException {
+        return apiMgtDAO.updateVhost(vhost, newGatewayEnvs);
     }
 
     /**

@@ -13782,10 +13782,11 @@ public class ApiMgtDAO {
      * Update VHost name and description
      *
      * @param vhost VHost to be updated
+     * @param newGatewayEnvs newly assigned gateway environments to the VHost
      * @return Updated VHost
      * @throws APIManagementException if failed to updated VHost
      */
-    public VHost updateVhost(VHost vhost) throws APIManagementException {
+    public VHost updateVhost(VHost vhost, List<String> newGatewayEnvs) throws APIManagementException {
         try (Connection connection = APIMgtDBUtil.getConnection()) {
             try (PreparedStatement prepStmt = connection.prepareStatement(SQLConstants.UPDATE_VHOST_SQL)) {
                 connection.setAutoCommit(false);
@@ -13793,6 +13794,8 @@ public class ApiMgtDAO {
                 prepStmt.setString(2, vhost.getDescription());
                 prepStmt.setInt(3, vhost.getId());
                 prepStmt.executeUpdate();
+                // Add only newly assigned gateway environments
+                addVHostGatewayEnvMapping(connection, vhost.getId(), newGatewayEnvs);
                 connection.commit();
             } catch (SQLException e) {
                 connection.rollback();
