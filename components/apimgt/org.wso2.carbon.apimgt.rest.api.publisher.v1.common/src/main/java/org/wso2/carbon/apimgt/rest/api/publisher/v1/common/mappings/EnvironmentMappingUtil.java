@@ -22,6 +22,7 @@ package org.wso2.carbon.apimgt.rest.api.publisher.v1.common.mappings;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.apimgt.api.model.VHost;
 import org.wso2.carbon.apimgt.impl.dto.Environment;
 import org.wso2.carbon.apimgt.rest.api.publisher.v1.dto.EnvironmentDTO;
 import org.wso2.carbon.apimgt.rest.api.publisher.v1.dto.EnvironmentEndpointsDTO;
@@ -30,6 +31,7 @@ import org.wso2.carbon.apimgt.rest.api.publisher.v1.dto.EnvironmentListDTO;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class EnvironmentMappingUtil {
 
@@ -39,7 +41,7 @@ public class EnvironmentMappingUtil {
      * @param environment Environment object
      * @return EnvironmentDTO object corresponding to the given Environment object
      */
-    public static EnvironmentDTO fromEnvironmentToDTO(Environment environment) {
+    public static EnvironmentDTO fromEnvironmentToDTO(Environment environment, List<VHost> vhosts) {
         EnvironmentDTO environmentDTO = new EnvironmentDTO();
         environmentDTO.setName(environment.getName());
         environmentDTO.setType(environment.getType());
@@ -63,6 +65,7 @@ public class EnvironmentMappingUtil {
             }
         }
         environmentDTO.setEndpoints(environmentEndpointsDTO);
+        environmentDTO.setVhostUrls(getVhostUrls(vhosts, environment.getName()));
         return environmentDTO;
     }
 
@@ -72,7 +75,8 @@ public class EnvironmentMappingUtil {
      * @param environmentCollection a collection of Environment objects
      * @return EnvironmentListDTO object containing EnvironmentDTOs
      */
-    public static EnvironmentListDTO fromEnvironmentCollectionToDTO(Collection<Environment> environmentCollection) {
+    public static EnvironmentListDTO fromEnvironmentCollectionToDTO(Collection<Environment> environmentCollection,
+                                                                    List<VHost> vhosts) {
         EnvironmentListDTO environmentListDTO = new EnvironmentListDTO();
         List<EnvironmentDTO> environmentDTOs = environmentListDTO.getList();
         if (environmentDTOs == null) {
@@ -81,7 +85,7 @@ public class EnvironmentMappingUtil {
         }
 
         for (Environment environment : environmentCollection) {
-            environmentDTOs.add(fromEnvironmentToDTO(environment));
+            environmentDTOs.add(fromEnvironmentToDTO(environment, vhosts));
         }
         environmentListDTO.setCount(environmentDTOs.size());
         return environmentListDTO;
@@ -125,6 +129,11 @@ public class EnvironmentMappingUtil {
      */
     private static boolean isSecureWebsocketURL(String url) {
         return url.matches("^wss://.*");
+    }
+
+    private static List<String> getVhostUrls(List<VHost> vhosts, String gwEnv) {
+        return vhosts.stream().filter(vhost -> vhost.getGatewayEnvironments().contains(gwEnv))
+                .map(VHost::getUrl).collect(Collectors.toList());
     }
 
 }

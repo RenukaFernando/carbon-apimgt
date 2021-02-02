@@ -23,6 +23,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.wso2.carbon.apimgt.api.APIManagementException;
 import org.wso2.carbon.apimgt.api.APIProvider;
+import org.wso2.carbon.apimgt.api.model.VHost;
 import org.wso2.carbon.apimgt.impl.APIConstants;
 import org.wso2.carbon.apimgt.impl.dto.Environment;
 import org.wso2.carbon.apimgt.impl.utils.APIUtil;
@@ -55,7 +56,10 @@ public class SettingsMappingUtil {
         if (isUserAvailable) {
             Map<String, Environment> environments = APIUtil.getEnvironments();
             if (environments != null) {
-                environmentListDTO = EnvironmentMappingUtil.fromEnvironmentCollectionToDTO(environments.values());
+                String tenantDomain = RestApiCommonUtil.getLoggedInUserTenantDomain();
+                APIProvider apiProvider = RestApiCommonUtil.getLoggedInUserProvider();
+                List<VHost> vhosts = apiProvider.getAllVhosts(tenantDomain);
+                environmentListDTO = EnvironmentMappingUtil.fromEnvironmentCollectionToDTO(environments.values(), vhosts);
             }
             settingsDTO.setEnvironment(environmentListDTO.getList());
             String storeUrl = APIUtil.getStoreUrl();

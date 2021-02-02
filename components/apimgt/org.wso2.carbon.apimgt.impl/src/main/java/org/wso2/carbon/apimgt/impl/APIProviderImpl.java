@@ -104,6 +104,7 @@ import org.wso2.carbon.apimgt.api.model.SwaggerData;
 import org.wso2.carbon.apimgt.api.model.Tier;
 import org.wso2.carbon.apimgt.api.model.URITemplate;
 import org.wso2.carbon.apimgt.api.model.Usage;
+import org.wso2.carbon.apimgt.api.model.VHost;
 import org.wso2.carbon.apimgt.api.model.policy.APIPolicy;
 import org.wso2.carbon.apimgt.api.model.policy.ApplicationPolicy;
 import org.wso2.carbon.apimgt.api.model.policy.Condition;
@@ -6535,6 +6536,11 @@ class APIProviderImpl extends AbstractAPIManager implements APIProvider {
     @Override
     public List<Label> getAllLabels(String tenantDomain) throws APIManagementException {
         return apiMgtDAO.getAllLabels(tenantDomain);
+    }
+
+    @Override
+    public List<VHost> getAllVhosts(String tenantDomain) throws APIManagementException {
+        return apiMgtDAO.getAllVhosts(tenantDomain);
     }
 
     @Override

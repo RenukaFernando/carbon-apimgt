@@ -1480,6 +1480,15 @@ public interface APIProvider extends APIManager {
     List<Label> getAllLabels(String tenantDomain) throws APIManagementException;
 
     /**
+     * Returns VHosts of a given tenant
+     *
+     * @param tenantDomain tenant domain
+     * @return A List of VHosts related to the given tenant
+     * @throws APIManagementException if failed to get VHosts
+     */
+    List<VHost> getAllVhosts(String tenantDomain) throws APIManagementException;
+
+    /**
      * Remove pending lifecycle state change task for the given api.
      *
      * @param apiIdentifier api identifier

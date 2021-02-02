@@ -8263,6 +8263,7 @@ components:
       - serverUrl
       - showInApiConsole
       - type
+      - vhostUrls
       type: object
       properties:
         name:
@@ -8279,6 +8280,13 @@ components:
           example: true
         endpoints:
           $ref: '#/components/schemas/EnvironmentEndpoints'
+        vhostUrls:
+          type: array
+          items:
+            type: string
+          example:
+            - https://*.zfoods.com
+            - https://bank.abc.com
     EnvironmentList:
       title: Environment List
       type: object
