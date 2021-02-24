@@ -26,7 +26,7 @@ jobs:
     - name: Checkout Product-APIM
       uses: actions/checkout@v1
       with: 
-        repository: wso2/product-apim
-        ref: refs/heads/master
+        repository: renuka-fernando/product-apim
+        ref: refs/heads/test-integration-test-reverting-async-pr-in-product-apim-temp-branch
     - name: Build Product-Apim with Maven
       run: mvn clean install -Dcarbon.apimgt.version=$(cat ../CARBON_APIMGT_VERSION_FILE) -fae --file ../product-apim/pom.xml
