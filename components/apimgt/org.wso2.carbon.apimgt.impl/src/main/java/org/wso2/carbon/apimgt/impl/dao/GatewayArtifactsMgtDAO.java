@@ -232,11 +232,15 @@ public class GatewayArtifactsMgtDAO {
                     }
                     connection.commit();
                 } catch (SQLException | APIManagementException e) {
+                    log.info("RENUKA: exception 3");
+                    log.error(e);
                     // APIManagementException if failed to revolve default vhost and set null to DB
                     connection.rollback();
                     throw new APIManagementException("Failed to attach labels", e);
                 }
             } catch (SQLException e) {
+                log.info("RENUKA: exception 4");
+                log.error(e);
                 handleException("Failed to attach labels" + apiId, e);
             }
         }
@@ -254,6 +258,7 @@ public class GatewayArtifactsMgtDAO {
                 preparedStatement.setString(3, gatewayLabel);
                 String resolvedVhost = VHostUtils
                         .resolveIfDefaultVhostToNull(gatewayLabel, gatewayVhosts.get(gatewayLabel));
+                log.info("RENUKA: resolvedVhost: " + resolvedVhost);
                 preparedStatement.setString(4, resolvedVhost);
                 preparedStatement.addBatch();
             }
@@ -535,11 +540,15 @@ public class GatewayArtifactsMgtDAO {
                 addPublishedGatewayLabels(connection, apiId, revision, gateways, gatewayVhosts);
                 connection.commit();
             } catch (SQLException | APIManagementException e) {
+                log.info("RENUKA: exception 1");
+                log.error(e);
                 // APIManagementException if failed to revolve default vhost and set null to DB
                 connection.rollback();
                 throw e;
             }
         } catch (SQLException e) {
+            log.info("RENUKA: exception 2");
+            log.error(e);
             handleException("Failed to delete and add  Gateway environments ", e);
         }
     }
